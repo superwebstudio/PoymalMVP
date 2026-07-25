@@ -1,0 +1,36 @@
+import type { Metadata } from "next";
+import { notFound, redirect } from "next/navigation";
+import { AdminSidebar } from "@/admin/components/AdminSidebar";
+import { getCurrentUser } from "@/lib/get-current-user";
+import "@/admin/admin.css";
+
+export const metadata: Metadata = {
+    title: "Ulov Admin Dashboard",
+    description: "Admin dashboard for Ulov fishing app",
+};
+
+export default async function AdminLayout({
+    children,
+}: Readonly<{
+    children: React.ReactNode;
+}>) {
+    const user = await getCurrentUser();
+    if (!user) {
+        redirect("/login?next=/admin");
+    }
+    if (!user.isAdmin) {
+        notFound();
+    }
+
+    return (
+        <div className="admin-layout">
+            <AdminSidebar />
+            <main className="admin-main">
+                <div className="admin-content">
+                    {children}
+                </div>
+            </main>
+        </div>
+    );
+}
+

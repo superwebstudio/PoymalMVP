@@ -1,0 +1,638 @@
+[
+    {
+        "id": "esox_lucius",
+        "scientificName": "Esox lucius",
+        "commonNameEn": "Northern Pike",
+        "commonNameRu": "Щука"
+    },
+    {
+        "id": "perca_fluviatilis",
+        "scientificName": "Perca fluviatilis",
+        "commonNameEn": "European Perch",
+        "commonNameRu": "Окунь"
+    },
+    {
+        "id": "sander_lucioperca",
+        "scientificName": "Sander lucioperca",
+        "commonNameEn": "Zander",
+        "commonNameRu": "Судак"
+    },
+    {
+        "id": "rutilus_rutilus",
+        "scientificName": "Rutilus rutilus",
+        "commonNameEn": "Roach",
+        "commonNameRu": "Плотва"
+    },
+    {
+        "id": "abramis_brama",
+        "scientificName": "Abramis brama",
+        "commonNameEn": "Common Bream",
+        "commonNameRu": "Лещ"
+    },
+    {
+        "id": "carassius_carassius",
+        "scientificName": "Carassius carassius",
+        "commonNameEn": "Crucian Carp",
+        "commonNameRu": "Карась"
+    },
+    {
+        "id": "cyprinus_carpio",
+        "scientificName": "Cyprinus carpio",
+        "commonNameEn": "Common Carp",
+        "commonNameRu": "Карп"
+    },
+    {
+        "id": "silurus_glanis",
+        "scientificName": "Silurus glanis",
+        "commonNameEn": "Wels Catfish",
+        "commonNameRu": "Сом"
+    },
+    {
+        "id": "tinca_tinca",
+        "scientificName": "Tinca tinca",
+        "commonNameEn": "Tench",
+        "commonNameRu": "Линь"
+    },
+    {
+        "id": "lota_lota",
+        "scientificName": "Lota lota",
+        "commonNameEn": "Burbot",
+        "commonNameRu": "Налим"
+    },
+    {
+        "id": "oncorhynchus_mykiss",
+        "scientificName": "Oncorhynchus mykiss",
+        "commonNameEn": "Rainbow Trout",
+        "commonNameRu": "Форель радужная"
+    },
+    {
+        "id": "salmo_trutta",
+        "scientificName": "Salmo trutta",
+        "commonNameEn": "Brown Trout",
+        "commonNameRu": "Форель ручьевая"
+    },
+    {
+        "id": "thymallus_thymallus",
+        "scientificName": "Thymallus thymallus",
+        "commonNameEn": "Grayling",
+        "commonNameRu": "Хариус"
+    },
+    {
+        "id": "anguilla_anguilla",
+        "scientificName": "Anguilla anguilla",
+        "commonNameEn": "European Eel",
+        "commonNameRu": "Угорь"
+    },
+    {
+        "id": "aspius_aspius",
+        "scientificName": "Aspius aspius",
+        "commonNameEn": "Asp",
+        "commonNameRu": "Жерех"
+    },
+    {
+        "id": "leuciscus_idus",
+        "scientificName": "Leuciscus idus",
+        "commonNameEn": "Ide",
+        "commonNameRu": "Язь"
+    },
+    {
+        "id": "scardinius_erythrophthalmus",
+        "scientificName": "Scardinius erythrophthalmus",
+        "commonNameEn": "Rudd",
+        "commonNameRu": "Красноперка"
+    },
+    {
+        "id": "blecca_bjoerkna",
+        "scientificName": "Blicca bjoerkna",
+        "commonNameEn": "Silver Bream",
+        "commonNameRu": "Густера"
+    },
+    {
+        "id": "gymnocephalus_cernua",
+        "scientificName": "Gymnocephalus cernua",
+        "commonNameEn": "Ruffe",
+        "commonNameRu": "Ерш"
+    },
+    {
+        "id": "gobio_gobio",
+        "scientificName": "Gobio gobio",
+        "commonNameEn": "Gudgeon",
+        "commonNameRu": "Пескарь"
+    },
+    {
+        "id": "alburnus_alburnus",
+        "scientificName": "Alburnus alburnus",
+        "commonNameEn": "Bleak",
+        "commonNameRu": "Уклейка"
+    },
+    {
+        "id": "carassius_gibelio",
+        "scientificName": "Carassius gibelio",
+        "commonNameEn": "Prussian Carp",
+        "commonNameRu": "Серебряный карась"
+    },
+    {
+        "id": "ctenopharyngodon_idella",
+        "scientificName": "Ctenopharyngodon idella",
+        "commonNameEn": "Grass Carp",
+        "commonNameRu": "Белый амур"
+    },
+    {
+        "id": "hypophthalmichthys_molitrix",
+        "scientificName": "Hypophthalmichthys molitrix",
+        "commonNameEn": "Silver Carp",
+        "commonNameRu": "Толстолобик"
+    },
+    {
+        "id": "acipenser_ruthenus",
+        "scientificName": "Acipenser ruthenus",
+        "commonNameEn": "Sterlet",
+        "commonNameRu": "Стерлядь"
+    },
+    {
+        "id": "hucho_taimen",
+        "scientificName": "Hucho taimen",
+        "commonNameEn": "Taimen",
+        "commonNameRu": "Таймень"
+    },
+    {
+        "id": "brachymystax_lenok",
+        "scientificName": "Brachymystax lenok",
+        "commonNameEn": "Lenok",
+        "commonNameRu": "Ленок"
+    },
+    {
+        "id": "coregonus_lavaretus",
+        "scientificName": "Coregonus lavaretus",
+        "commonNameEn": "European Whitefish",
+        "commonNameRu": "Сиг"
+    },
+    {
+        "id": "coregonus_albula",
+        "scientificName": "Coregonus albula",
+        "commonNameEn": "Vendace",
+        "commonNameRu": "Ряпушка"
+    },
+    {
+        "id": "osmerus_eperlanus",
+        "scientificName": "Osmerus eperlanus",
+        "commonNameEn": "European Smelt",
+        "commonNameRu": "Корюшка"
+    },
+    {
+        "id": "clupea_harengus_membras",
+        "scientificName": "Clupea harengus membras",
+        "commonNameEn": "Baltic Herring",
+        "commonNameRu": "Салака"
+    },
+    {
+        "id": "platichthys_flesus",
+        "scientificName": "Platichthys flesus",
+        "commonNameEn": "European Flounder",
+        "commonNameRu": "Камбала речная"
+    },
+    {
+        "id": "gadus_morhua",
+        "scientificName": "Gadus morhua",
+        "commonNameEn": "Atlantic Cod",
+        "commonNameRu": "Треска"
+    },
+    {
+        "id": "pollachius_pollachius",
+        "scientificName": "Pollachius pollachius",
+        "commonNameEn": "Pollack",
+        "commonNameRu": "Люри"
+    },
+    {
+        "id": "scomber_scombrus",
+        "scientificName": "Scomber scombrus",
+        "commonNameEn": "Atlantic Mackerel",
+        "commonNameRu": "Скумбрия"
+    },
+    {
+        "id": "salmo_salar",
+        "scientificName": "Salmo salar",
+        "commonNameEn": "Atlantic Salmon",
+        "commonNameRu": "Семга"
+    },
+    {
+        "id": "oncorhynchus_gorbuscha",
+        "scientificName": "Oncorhynchus gorbuscha",
+        "commonNameEn": "Pink Salmon",
+        "commonNameRu": "Горбуша"
+    },
+    {
+        "id": "oncorhynchus_keta",
+        "scientificName": "Oncorhynchus keta",
+        "commonNameEn": "Chum Salmon",
+        "commonNameRu": "Кета"
+    },
+    {
+        "id": "oncorhynchus_kisutch",
+        "scientificName": "Oncorhynchus kisutch",
+        "commonNameEn": "Coho Salmon",
+        "commonNameRu": "Кижуч"
+    },
+    {
+        "id": "oncorhynchus_nerka",
+        "scientificName": "Oncorhynchus nerka",
+        "commonNameEn": "Sockeye Salmon",
+        "commonNameRu": "Нерка"
+    },
+    {
+        "id": "salvelinus_alpinus",
+        "scientificName": "Salvelinus alpinus",
+        "commonNameEn": "Arctic Char",
+        "commonNameRu": "Голец"
+    },
+    {
+        "id": "misgurnus_fossilis",
+        "scientificName": "Misgurnus fossilis",
+        "commonNameEn": "Weatherfish",
+        "commonNameRu": "Вьюн"
+    },
+    {
+        "id": "barbatula_barbatula",
+        "scientificName": "Barbatula barbatula",
+        "commonNameEn": "Stone Loach",
+        "commonNameRu": "Голец усатый"
+    },
+    {
+        "id": "cobitis_taenia",
+        "scientificName": "Cobitis taenia",
+        "commonNameEn": "Spined Loach",
+        "commonNameRu": "Щиповка"
+    },
+    {
+        "id": "cottus_gobio",
+        "scientificName": "Cottus gobio",
+        "commonNameEn": "Bullhead",
+        "commonNameRu": "Подкаменщик"
+    },
+    {
+        "id": "leuciscus_leuciscus",
+        "scientificName": "Leuciscus leuciscus",
+        "commonNameEn": "Dace",
+        "commonNameRu": "Елец"
+    },
+    {
+        "id": "leuciscus_cephalus",
+        "scientificName": "Squalius cephalus",
+        "commonNameEn": "Chub",
+        "commonNameRu": "Голавль"
+    },
+    {
+        "id": "vimba_vimba",
+        "scientificName": "Vimba vimba",
+        "commonNameEn": "Vimba Bream",
+        "commonNameRu": "Рыбец"
+    },
+    {
+        "id": "pelecus_cultratus",
+        "scientificName": "Pelecus cultratus",
+        "commonNameEn": "Sichel",
+        "commonNameRu": "Чехонь"
+    },
+    {
+        "id": "neogobius_melanostomus",
+        "scientificName": "Neogobius melanostomus",
+        "commonNameEn": "Round Goby",
+        "commonNameRu": "Бычок-кругляк"
+    },
+    {
+        "id": "salvelinus_fontinalis",
+        "scientificName": "Salvelinus fontinalis",
+        "commonNameEn": "Brook Trout",
+        "commonNameRu": "Ручейная форель"
+    },
+    {
+        "id": "pseudorasbora_parva",
+        "scientificName": "Pseudorasbora parva",
+        "commonNameEn": "Stone Moroko",
+        "commonNameRu": "Псевдорасбора"
+    },
+    {
+        "id": "rutilus_pigus",
+        "scientificName": "Rutilus pigus",
+        "commonNameEn": "Danube Roach",
+        "commonNameRu": "Дунайская плотва"
+    },
+    {
+        "id": "sander_volgensis",
+        "scientificName": "Sander volgensis",
+        "commonNameEn": "Volga Zander",
+        "commonNameRu": "Волжский судак"
+    },
+    {
+        "id": "chondrostoma_nasus",
+        "scientificName": "Chondrostoma nasus",
+        "commonNameEn": "Nase",
+        "commonNameRu": "Обыкновенный подуст"
+    },
+    {
+        "id": "thymallus_arcticus",
+        "scientificName": "Thymallus arcticus",
+        "commonNameEn": "Arctic Grayling",
+        "commonNameRu": "Арктический хариус"
+    },
+    {
+        "id": "merlangius_merlangus",
+        "scientificName": "Merlangius merlangus",
+        "commonNameEn": "Whiting",
+        "commonNameRu": "Мерланг"
+    },
+    {
+        "id": "micromesistius_poutassou",
+        "scientificName": "Micromesistius poutassou",
+        "commonNameEn": "Blue Whiting",
+        "commonNameRu": "Путассу"
+    },
+    {
+        "id": "pollachius_virens",
+        "scientificName": "Pollachius virens",
+        "commonNameEn": "Saithe",
+        "commonNameRu": "Сайда"
+    },
+    {
+        "id": "sprattus_sprattus",
+        "scientificName": "Sprattus sprattus",
+        "commonNameEn": "European Sprat",
+        "commonNameRu": "Европейская килька"
+    },
+    {
+        "id": "clupea_harengus",
+        "scientificName": "Clupea harengus",
+        "commonNameEn": "Atlantic Herring",
+        "commonNameRu": "Атлантическая сельдь"
+    },
+    {
+        "id": "barbus_barbus",
+        "scientificName": "Barbus barbus",
+        "commonNameEn": "Common Barbel",
+        "commonNameRu": "Усач"
+    },
+    {
+        "id": "hucho_hucho",
+        "scientificName": "Hucho hucho",
+        "commonNameEn": "Huchen (Danube Salmon)",
+        "commonNameRu": "Дунайский таймень"
+    },
+    {
+        "id": "dicentrarchus_labrax",
+        "scientificName": "Dicentrarchus labrax",
+        "commonNameEn": "European Seabass",
+        "commonNameRu": "Лаврак (Сибас)"
+    },
+    {
+        "id": "sparus_aurata",
+        "scientificName": "Sparus aurata",
+        "commonNameEn": "Gilthead Seabream",
+        "commonNameRu": "Дорада (Золотистый спар)"
+    },
+    {
+        "id": "hippoglossus_hippoglossus",
+        "scientificName": "Hippoglossus hippoglossus",
+        "commonNameEn": "Atlantic Halibut",
+        "commonNameRu": "Атлантический палтус"
+    },
+    {
+        "id": "scophthalmus_maximus",
+        "scientificName": "Scophthalmus maximus",
+        "commonNameEn": "Turbot",
+        "commonNameRu": "Тюрбо (Большой ромб)"
+    },
+    {
+        "id": "pleuronectes_platessa",
+        "scientificName": "Pleuronectes platessa",
+        "commonNameEn": "European Plaice",
+        "commonNameRu": "Морская камбала"
+    },
+    {
+        "id": "melanogrammus_aeglefinus",
+        "scientificName": "Melanogrammus aeglefinus",
+        "commonNameEn": "Haddock",
+        "commonNameRu": "Пикша"
+    },
+    {
+        "id": "anarhichas_lupus",
+        "scientificName": "Anarhichas lupus",
+        "commonNameEn": "Atlantic Wolffish",
+        "commonNameRu": "Зубатка полосатая"
+    },
+    {
+        "id": "sebastes_norvegicus",
+        "scientificName": "Sebastes norvegicus",
+        "commonNameEn": "Golden Redfish",
+        "commonNameRu": "Золотистый окунь (Морской окунь)"
+    },
+    {
+        "id": "belone_belone",
+        "scientificName": "Belone belone",
+        "commonNameEn": "Garfish",
+        "commonNameRu": "Сарган"
+    },
+    {
+        "id": "mugil_cephalus",
+        "scientificName": "Mugil cephalus",
+        "commonNameEn": "Flathead Grey Mullet",
+        "commonNameRu": "Лобан (Кефаль)"
+    },
+    {
+        "id": "channa_argus",
+        "scientificName": "Channa argus",
+        "commonNameEn": "Northern Snakehead",
+        "commonNameRu": "Змееголов"
+    },
+    {
+        "id": "hypophthalmichthys_nobilis",
+        "scientificName": "Hypophthalmichthys nobilis",
+        "commonNameEn": "Bighead Carp",
+        "commonNameRu": "Пестрый толстолобик"
+    },
+    {
+        "id": "mylopharyngodon_piceus",
+        "scientificName": "Mylopharyngodon piceus",
+        "commonNameEn": "Black Carp",
+        "commonNameRu": "Черный амур"
+    },
+    {
+        "id": "coregonus_muksun",
+        "scientificName": "Coregonus muksun",
+        "commonNameEn": "Muksun",
+        "commonNameRu": "Муксун"
+    },
+    {
+        "id": "coregonus_peled",
+        "scientificName": "Coregonus peled",
+        "commonNameEn": "Peled",
+        "commonNameRu": "Пелядь"
+    },
+    {
+        "id": "elops_saurus",
+        "scientificName": "Pomatomus saltatrix",
+        "commonNameEn": "Bluefish",
+        "commonNameRu": "Луфарь"
+    },
+    {
+        "id": "huso_huso",
+        "scientificName": "Huso huso",
+        "commonNameEn": "Beluga Sturgeon",
+        "commonNameRu": "Белуга"
+    },
+    {
+        "id": "acipenser_stellatus",
+        "scientificName": "Acipenser stellatus",
+        "commonNameEn": "Starry Sturgeon (Sevruga)",
+        "commonNameRu": "Севрюга"
+    },
+    {
+        "id": "micropterus_salmoides",
+        "scientificName": "Micropterus salmoides",
+        "commonNameEn": "Largemouth Bass",
+        "commonNameRu": "Большеротый окунь (Басс)"
+    },
+    {
+        "id": "ictalurus_punctatus",
+        "scientificName": "Ictalurus punctatus",
+        "commonNameEn": "Channel Catfish",
+        "commonNameRu": "Канальный сомик"
+    },
+    {
+        "id": "perccottus_glenii",
+        "scientificName": "Perccottus glenii",
+        "commonNameEn": "Amur Sleeper (Chinese Sleeper)",
+        "commonNameRu": "Ротан"
+    },
+    {
+        "id": "lepomis_gibbosus",
+        "scientificName": "Lepomis gibbosus",
+        "commonNameEn": "Pumpkinseed",
+        "commonNameRu": "Солнечный окунь"
+    },
+    {
+        "id": "micropterus_dolomieu",
+        "scientificName": "Micropterus dolomieu",
+        "commonNameEn": "Smallmouth Bass",
+        "commonNameRu": "Малоротый окунь"
+    },
+    {
+        "id": "sander_vitreus",
+        "scientificName": "Sander vitreus",
+        "commonNameEn": "Walleye",
+        "commonNameRu": "Светлопёрый судак"
+    },
+    {
+        "id": "esox_masquinongy",
+        "scientificName": "Esox masquinongy",
+        "commonNameEn": "Muskellunge (Muskie)",
+        "commonNameRu": "Маскинонг"
+    },
+    {
+        "id": "cichla_temensis",
+        "scientificName": "Cichla temensis",
+        "commonNameEn": "Peacock Bass",
+        "commonNameRu": "Павлиний окунь"
+    },
+    {
+        "id": "salminus_brasiliensis",
+        "scientificName": "Salminus brasiliensis",
+        "commonNameEn": "Golden Dorado",
+        "commonNameRu": "Золотой дорадо"
+    },
+    {
+        "id": "arapaima_gigas",
+        "scientificName": "Arapaima gigas",
+        "commonNameEn": "Arapaima",
+        "commonNameRu": "Арапайма"
+    },
+    {
+        "id": "hydrocynus_vittatus",
+        "scientificName": "Hydrocynus vittatus",
+        "commonNameEn": "Tigerfish",
+        "commonNameRu": "Тигровая рыба"
+    },
+    {
+        "id": "lates_niloticus",
+        "scientificName": "Lates niloticus",
+        "commonNameEn": "Nile Perch",
+        "commonNameRu": "Нильский окунь"
+    },
+    {
+        "id": "tor_putitora",
+        "scientificName": "Tor putitora",
+        "commonNameEn": "Golden Mahseer",
+        "commonNameRu": "Золотой махсир"
+    },
+    {
+        "id": "lutjanus_goldiei",
+        "scientificName": "Lutjanus goldiei",
+        "commonNameEn": "Papuan Black Bass",
+        "commonNameRu": "Папуанский черный окунь"
+    },
+    {
+        "id": "atractosteus_spatula",
+        "scientificName": "Atractosteus spatula",
+        "commonNameEn": "Alligator Gar",
+        "commonNameRu": "Миссисипский панцирник"
+    },
+    {
+        "id": "makaira_nigricans",
+        "scientificName": "Makaira nigricans",
+        "commonNameEn": "Blue Marlin",
+        "commonNameRu": "Голубой марлин"
+    },
+    {
+        "id": "istiophorus_platypterus",
+        "scientificName": "Istiophorus platypterus",
+        "commonNameEn": "Sailfish",
+        "commonNameRu": "Парусник"
+    },
+    {
+        "id": "thunnus_albacares",
+        "scientificName": "Thunnus albacares",
+        "commonNameEn": "Yellowfin Tuna",
+        "commonNameRu": "Желтопёрый тунец"
+    },
+    {
+        "id": "thunnus_thynnus",
+        "scientificName": "Thunnus thynnus",
+        "commonNameEn": "Atlantic Bluefin Tuna",
+        "commonNameRu": "Атлантический голубой тунец"
+    },
+    {
+        "id": "caranx_ignobilis",
+        "scientificName": "Caranx ignobilis",
+        "commonNameEn": "Giant Trevally (GT)",
+        "commonNameRu": "Гигантский каранкс (GT)"
+    },
+    {
+        "id": "megalops_atlanticus",
+        "scientificName": "Megalops atlanticus",
+        "commonNameEn": "Tarpon",
+        "commonNameRu": "Тарпон"
+    },
+    {
+        "id": "albula_vulpes",
+        "scientificName": "Albula vulpes",
+        "commonNameEn": "Bonefish",
+        "commonNameRu": "Альбула (Бонфиш)"
+    },
+    {
+        "id": "trachinotus_falcatus",
+        "scientificName": "Trachinotus falcatus",
+        "commonNameEn": "Permit",
+        "commonNameRu": "Пермит"
+    },
+    {
+        "id": "centropomus_undecimalis",
+        "scientificName": "Centropomus undecimalis",
+        "commonNameEn": "Common Snook",
+        "commonNameRu": "Снук"
+    },
+    {
+        "id": "coryphaena_hippurus",
+        "scientificName": "Coryphaena hippurus",
+        "commonNameEn": "Mahi-Mahi (Dorado)",
+        "commonNameRu": "Корифена (Махи-махи)"
+    }
+]

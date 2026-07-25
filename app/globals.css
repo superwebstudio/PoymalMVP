@@ -1,0 +1,246 @@
+@import "tailwindcss";
+
+:root {
+  --background: #09090b;
+  --foreground: #fafafa;
+  --app-max-width: 480px;
+  --app-shell-gutter: #18181b;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: Arial, Helvetica, sans-serif;
+  /* Prevent pull-to-refresh on mobile */
+  overscroll-behavior-y: none;
+}
+
+/* Mobile-first phone shell: cap width on desktop, keep gutters neutral */
+html.app-phone-shell {
+  --app-gutter: max(0px, calc((100vw - var(--app-max-width)) / 2));
+}
+
+html.app-phone-shell body {
+  background: var(--app-shell-gutter);
+}
+
+html.app-phone-shell .app-shell {
+  position: relative;
+  width: 100%;
+  max-width: var(--app-max-width);
+  min-height: 100dvh;
+  margin-inline: auto;
+  background: var(--background);
+}
+
+@media (min-width: 481px) {
+  html.app-phone-shell .app-shell {
+    box-shadow:
+      0 0 0 1px rgb(255 255 255 / 0.04),
+      0 24px 80px rgb(0 0 0 / 0.45);
+  }
+
+  /*
+   * Keep fixed chrome inside the phone column while still
+   * anchoring to the real viewport (top/bottom of the screen).
+   */
+  html.app-phone-shell .fixed.inset-0,
+  html.app-phone-shell .fixed.left-0.right-0,
+  html.app-phone-shell .fixed.inset-x-0,
+  html.app-phone-shell .bottom-nav {
+    left: var(--app-gutter) !important;
+    right: var(--app-gutter) !important;
+    width: auto !important;
+    max-width: var(--app-max-width);
+  }
+
+  html.app-phone-shell .fixed.inset-x-4 {
+    left: calc(var(--app-gutter) + 1rem) !important;
+    right: calc(var(--app-gutter) + 1rem) !important;
+    width: auto !important;
+  }
+
+  html.app-phone-shell .fixed.left-4 {
+    left: calc(var(--app-gutter) + 1rem) !important;
+  }
+
+  html.app-phone-shell .fixed.right-4 {
+    right: calc(var(--app-gutter) + 1rem) !important;
+  }
+
+  html.app-phone-shell .fixed.right-6 {
+    right: calc(var(--app-gutter) + 1.5rem) !important;
+  }
+
+  /* Portals that escape .app-shell (react-modal-sheet mounts on document.body) */
+  html.app-phone-shell .react-modal-sheet-root,
+  html.app-phone-shell .react-modal-sheet-backdrop {
+    left: var(--app-gutter) !important;
+    right: var(--app-gutter) !important;
+    width: auto !important;
+    max-width: var(--app-max-width);
+  }
+}
+
+/* Safe area support for iPhone notch/home indicator */
+@supports (padding: max(0px)) {
+  .pb-safe {
+    padding-bottom: max(1rem, env(safe-area-inset-bottom));
+  }
+
+  .pt-safe {
+    padding-top: max(0px, env(safe-area-inset-top));
+  }
+}
+
+/* React Modal Sheet - Slow down closing transition */
+.react-modal-sheet-container {
+  transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1) !important;
+}
+
+.react-modal-sheet-backdrop {
+  transition: opacity 0.35s cubic-bezier(0.22, 1, 0.36, 1) !important;
+  backface-visibility: hidden;
+
+}
+
+/* Ensure sheet content doesn't cause layout shifts during animation */
+.react-modal-sheet-content {
+  contain: layout style;
+}
+
+/* Bottom Nav - Prevent keyboard from pushing it up */
+.bottom-nav {
+  position: fixed;
+  bottom: 0;
+  /* Use max() to prevent keyboard from pushing it up */
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes dropped-pin-bounce {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-6px);
+  }
+}
+
+.dropped-pin-marker-bounce {
+  animation: dropped-pin-bounce 1s ease-in-out infinite;
+}
+
+@keyframes live-catch-pulse {
+  0% {
+    transform: scale(0.7);
+    opacity: 0.85;
+  }
+  50% {
+    transform: scale(1.08);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes live-catch-ripple {
+  0% {
+    transform: scale(0.35);
+    opacity: 0.55;
+  }
+  100% {
+    transform: scale(2.4);
+    opacity: 0;
+  }
+}
+
+.live-catch-marker {
+  position: relative;
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.live-catch-ripple {
+  position: absolute;
+  inset: 0;
+  border-radius: 9999px;
+  background: rgb(56 189 248 / 0.35);
+  animation: live-catch-ripple 1.4s ease-out 2;
+  pointer-events: none;
+}
+
+.live-catch-fish {
+  position: relative;
+  z-index: 1;
+  width: 34px;
+  height: 34px;
+  border-radius: 9999px;
+  background: #0ea5e9;
+  border: 2px solid white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  box-shadow: 0 2px 8px rgb(0 0 0 / 0.35);
+  animation: live-catch-pulse 0.9s ease-out 3;
+}
+
+.live-catch-badge {
+  position: relative;
+  z-index: 1;
+  min-width: 40px;
+  padding: 0.35rem 0.55rem;
+  border-radius: 9999px;
+  background: #0ea5e9;
+  border: 2px solid white;
+  color: white;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1;
+  white-space: nowrap;
+  box-shadow: 0 2px 8px rgb(0 0 0 / 0.35);
+  animation: live-catch-pulse 0.9s ease-out 3;
+}
+
+.live-catch-marker--settled .live-catch-ripple {
+  animation: none;
+  opacity: 0;
+}
+
+.live-catch-marker--settled .live-catch-fish,
+.live-catch-marker--settled .live-catch-badge {
+  animation: none;
+}
+
+/* Hide scrollbar for horizontal scrollable tabs */
+.scrollbar-hide {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;  /* Chrome, Safari and Opera */
+}

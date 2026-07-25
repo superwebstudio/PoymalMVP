@@ -1,0 +1,319 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String  @id @default(uuid())
+  authId    String  @unique
+  email     String? @unique
+  firstName String?
+  username  String?
+  photoUrl  String?
+  language  String  @default("en")
+  isPro     Boolean @default(false)
+  isAdmin   Boolean @default(false)
+  country   String? // User's country
+
+  // Display preferences
+  showTelegramHandle Boolean @default(true)
+  showCountryBadge   Boolean @default(true)
+  catchViewMode      String  @default("grid") // "grid" or "list"
+  notificationsEnabled Boolean @default(true)
+  notifyOnLikes        Boolean @default(true)
+  notifyOnComments     Boolean @default(true)
+
+  // AI Limits
+  aiUsageCount Int      @default(0)
+  lastAiReset  DateTime @default(now())
+
+  // Subscription
+  proExpiresAt           DateTime?
+  proStartedAt           DateTime?
+  proType                String? // "monthly" | "yearly" | "referral"
+  proCancelAtPeriodEnd   Boolean  @default(false)
+  stripeCustomerId       String?
+  stripeSubscriptionId   String?
+
+  // Referral system
+  referralCode            String?  @unique // FISH-XXXXXX format (generated on first access)
+  premiumDaysBalance      Int     @default(0) // Accumulated premium days from referrals
+  totalCompletedReferrals Int     @default(0)
+  raffleTickets           Int     @default(0)
+
+  createdAt     DateTime       @default(now())
+  catches       Catch[]
+  likes         Like[]
+  reactions     Reaction[]
+  comments      Comment[]
+  notifications Notification[]
+  transactions  Transaction[]
+
+  // Follow system
+  following Follow[] @relation("UserFollowing")
+  followers Follow[] @relation("UserFollowers")
+
+  // Referral relations
+  referralsMade     Referral[] @relation("ReferrerUser")
+  referralsReceived Referral[] @relation("ReferredUser")
+  
+  // Saved locations
+  savedLocations SavedLocation[]
+  
+  // Saved posts
+  savedPosts SavedPost[]
+  catchViews CatchView[]
+}
+
+model Catch {
+  id              String  @id @default(uuid())
+  userId          String
+  imageUrl        String? // Optional for text-only posts
+  species         String? // Optional for text-only posts
+  scientificName  String? // Latin name
+  description     String?
+  weight          Float? // kg
+  length          Float? // cm
+  location        String? // Region name
+  latitude        Float?
+  longitude       Float?
+  isPublic        Boolean @default(true)
+  locationPrivate Boolean @default(false) // Hide exact coordinates
+
+  // Post type
+  isTextOnly Boolean @default(false)
+  postType   String? // "catch", "text", "bait_mix" - null defaults to "catch"
+  isPinned   Boolean @default(false) // Pin to profile
+
+  // Repost system
+  originalPostId String?
+  originalPost   Catch?  @relation("Reposts", fields: [originalPostId], references: [id])
+  reposts        Catch[] @relation("Reposts")
+
+  // Additional metrics
+  depth     Float? // meters
+  waterTemp Float? // celsius
+  bait      String?
+  method    String? // "spinning", "fly", "bottom", etc
+  rating    Int? // User rating 1-5 stars
+
+  // Weather conditions at time of catch
+  weatherData Json? // Stored weather conditions (temperature, wind, pressure, etc.)
+
+  // Bait mix data (for postType = "bait_mix")
+  baitMixData Json? // { mixName, ingredients: [{ name, proportion, unit }], notes }
+
+  createdAt DateTime   @default(now())
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  likes     Like[]
+  reactions Reaction[]
+  comments  Comment[]
+  savedBy   SavedPost[]
+  views     CatchView[]
+}
+
+model CatchView {
+  catchId   String
+  userId    String
+  createdAt DateTime @default(now())
+
+  catch Catch @relation(fields: [catchId], references: [id], onDelete: Cascade)
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([catchId, userId])
+  @@index([catchId])
+}
+
+model Like {
+  id        String   @id @default(uuid())
+  userId    String
+  catchId   String
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  catch     Catch    @relation(fields: [catchId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, catchId])
+}
+
+model Reaction {
+  id        String   @id @default(uuid())
+  userId    String
+  catchId   String
+  emoji     String // "🔥", "💪", "🎣", "👍", "😮"
+  createdAt DateTime @default(now())
+
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  catch Catch @relation(fields: [catchId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, catchId])
+}
+
+model Comment {
+  id        String   @id @default(uuid())
+  userId    String
+  catchId   String
+  content   String
+  createdAt DateTime @default(now())
+
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  catch Catch @relation(fields: [catchId], references: [id], onDelete: Cascade)
+
+  @@index([catchId])
+}
+
+model Follow {
+  id          String   @id @default(uuid())
+  followerId  String
+  followingId String
+  createdAt   DateTime @default(now())
+
+  follower  User @relation("UserFollowing", fields: [followerId], references: [id], onDelete: Cascade)
+  following User @relation("UserFollowers", fields: [followingId], references: [id], onDelete: Cascade)
+
+  @@unique([followerId, followingId])
+}
+
+model Notification {
+  id        String   @id @default(uuid())
+  userId    String
+  type      String // "like", "comment", "follow", "reaction"
+  actorId   String? // User who triggered the notification
+  catchId   String? // Related catch if applicable
+  content   String? // Notification text
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, isRead])
+}
+
+model Transaction {
+  id         String   @id @default(uuid())
+  userId     String
+  amount     Float // EUR (or legacy stars)
+  currency   String   @default("eur")
+  type       String // "monthly" or "yearly"
+  status     String // "completed", "failed", "pending"
+  invoiceUrl String? // Optional invoice / checkout URL
+  createdAt  DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+}
+
+model SavedLocation {
+  id        String   @id @default(uuid())
+  userId    String
+  latitude  Float
+  longitude Float
+  name      String?
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, latitude, longitude])
+  @@index([userId])
+}
+
+model Referral {
+  id             String   @id @default(uuid())
+  referrerUserId String
+  referredUserId String
+  status         String   @default("pending") // "pending", "completed", "expired"
+  createdAt      DateTime @default(now())
+  firstPostAt    DateTime? // Null until referred user posts
+  expiresAt      DateTime // createdAt + 7 days
+  rewardClaimed  Boolean  @default(false)
+  daysAwarded    Int      @default(0) // Days awarded to referrer for this referral
+
+  referrer User @relation("ReferrerUser", fields: [referrerUserId], references: [id], onDelete: Cascade)
+  referred User @relation("ReferredUser", fields: [referredUserId], references: [id], onDelete: Cascade)
+
+  @@unique([referredUserId]) // Each user can only be referred once
+  @@index([referrerUserId, status])
+  @@index([status, expiresAt])
+}
+
+model SavedPost {
+  id        String   @id @default(uuid())
+  userId    String
+  catchId   String
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  catch Catch @relation(fields: [catchId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, catchId])
+  @@index([userId, createdAt])
+}
+
+// ============================================
+// Security & Audit Logging
+// ============================================
+
+model AuditLog {
+  id        String   @id @default(uuid())
+  
+  // Event classification
+  eventType String   // "auth_failure", "rate_limit", "validation_error", "suspicious_activity", "admin_action", etc.
+  severity  String   @default("info") // "info", "warning", "error", "critical"
+  
+  // Actor information
+  userId    String?  // User who triggered the event (null for anonymous)
+  ipAddress String?  // Client IP address
+  userAgent String?  // User agent string
+  
+  // Request context
+  method    String?  // HTTP method
+  path      String?  // API endpoint path
+  statusCode Int?    // HTTP response status
+  durationMs Int?    // Request duration in milliseconds
+  
+  // Event details
+  message   String   // Human-readable description
+  metadata  Json?    // Additional structured data (sanitized)
+  
+  // Timestamps
+  createdAt DateTime @default(now())
+  
+  @@index([eventType, createdAt])
+  @@index([userId, createdAt])
+  @@index([severity, createdAt])
+  @@index([createdAt])
+}
+
+model SecurityAlert {
+  id          String   @id @default(uuid())
+  
+  // Alert classification
+  alertType   String   // "brute_force", "rate_abuse", "suspicious_pattern", "data_breach_attempt"
+  severity    String   // "low", "medium", "high", "critical"
+  
+  // Target
+  userId      String?
+  ipAddress   String?
+  
+  // Details
+  title       String
+  description String
+  metadata    Json?
+  
+  // Status
+  status      String   @default("open") // "open", "investigating", "resolved", "false_positive"
+  resolvedAt  DateTime?
+  resolvedBy  String?  // Admin user ID
+  resolution  String?  // Resolution notes
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@index([status, severity])
+  @@index([alertType, createdAt])
+  @@index([userId])
+}
