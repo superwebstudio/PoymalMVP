@@ -38,23 +38,37 @@ async function getModerationData() {
     _count: { id: true },
   });
 
-  const rapidPosterDetails = await Promise.all(
-    rapidPosters.map(async (rp) => {
-      const user = await prisma.user.findUnique({
-        where: { id: rp.userId },
-        select: {
-          id: true,
-          firstName: true,
-          username: true,
-          photoUrl: true,
-          createdAt: true,
-        },
-      });
-      return {
-        ...user,
-        catchesToday: rp._count.id,
-      };
-    })
+  const rapidPosterDetails = (
+    await Promise.all(
+      rapidPosters.map(async (rp) => {
+        const user = await prisma.user.findUnique({
+          where: { id: rp.userId },
+          select: {
+            id: true,
+            firstName: true,
+            username: true,
+            photoUrl: true,
+            createdAt: true,
+          },
+        });
+        if (!user) return null;
+        return {
+          id: user.id,
+          firstName: user.firstName,
+          username: user.username,
+          photoUrl: user.photoUrl,
+          catchesToday: rp._count.id,
+        };
+      })
+    )
+  ).filter(
+    (user): user is {
+      id: string;
+      firstName: string | null;
+      username: string | null;
+      photoUrl: string | null;
+      catchesToday: number;
+    } => user !== null
   );
 
   // 3. Recent catches without GPS data (potential fake)
@@ -134,7 +148,7 @@ async function getModerationData() {
       hiddenContent: flaggedContent.length,
     },
     suspiciousReferrers,
-    rapidPosters: rapidPosterDetails.filter(Boolean),
+    rapidPosters: rapidPosterDetails,
     noGpsCatches: noGpsCatches.map(c => ({
       ...c,
       type: 'no_gps' as const,

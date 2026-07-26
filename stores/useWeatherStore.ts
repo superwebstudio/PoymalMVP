@@ -128,14 +128,14 @@ export const useWeatherStore = create<WeatherState>((set, get) => ({
         }
         const dailyData = state.dailyWeatherData[dayIndex];
         if (!dailyData || !dailyData.hourly.time.length) return null;
-        
+
         // Get average or representative values for the day
         const temps = dailyData.hourly.temperature;
         const windSpeeds = dailyData.hourly.windSpeed;
         const windDirs = dailyData.hourly.windDirection;
         const pressures = dailyData.hourly.pressure;
         const humidities = dailyData.hourly.humidity;
-        
+
         return {
             temperature: temps.length > 0 ? temps[Math.floor(temps.length / 2)] : 0,
             windSpeed: windSpeeds.length > 0 ? windSpeeds[Math.floor(windSpeeds.length / 2)] : 0,
@@ -152,11 +152,11 @@ export const useWeatherStore = create<WeatherState>((set, get) => ({
         }
         const dailyData = state.dailyMarineData[dayIndex];
         if (!dailyData || !dailyData.hourly.time.length) return null;
-        
+
         const waveHeights = dailyData.hourly.waveHeight;
         const waveDirs = dailyData.hourly.waveDirection;
         const waterTemps = dailyData.hourly.waterTemperature;
-        
+
         return {
             waveHeight: waveHeights.length > 0 ? waveHeights[Math.floor(waveHeights.length / 2)] : 0,
             waveDirection: waveDirs.length > 0 ? waveDirs[Math.floor(waveDirs.length / 2)] : 0,
@@ -173,7 +173,7 @@ export const useWeatherStore = create<WeatherState>((set, get) => ({
         const today = new Date();
         const targetDate = new Date(today);
         targetDate.setDate(today.getDate() + dayIndex);
-        
+
         // Use stored coordinates or default to 0,0
         const lat = state.currentLat ?? 0;
         const lng = state.currentLng ?? 0;
@@ -204,15 +204,15 @@ export const useWeatherStore = create<WeatherState>((set, get) => ({
         try {
             const controller = new AbortController();
             const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 second timeout
-            
+
             const response = await fetch(
                 `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1`,
-                { 
+                {
                     headers: { 'User-Agent': 'Ulov Fishing App' },
                     signal: controller.signal
                 }
             );
-            
+
             clearTimeout(timeoutId);
 
             if (response.ok) {
@@ -252,7 +252,7 @@ export const useWeatherStore = create<WeatherState>((set, get) => ({
                 throw new Error(`Failed to fetch weather data: ${weatherResponse.status} ${weatherResponse.statusText} - ${errorText}`);
             }
             const weatherJson = await weatherResponse.json();
-            
+
             if (!weatherJson.current || !weatherJson.hourly) {
                 throw new Error('Invalid weather data format received');
             }
@@ -408,7 +408,7 @@ export const useWeatherStore = create<WeatherState>((set, get) => ({
         } catch (error) {
             console.error('Error fetching weather data:', error);
             const errorMessage = error instanceof Error ? error.message : 'Failed to load weather data';
-            set({ 
+            set({
                 error: errorMessage,
                 weatherData: null,
                 marineData: null,

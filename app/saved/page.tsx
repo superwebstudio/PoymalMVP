@@ -114,13 +114,13 @@ export default function SavedPostsPage() {
           <div className="flex items-center gap-2">
             <button
               onClick={() => setViewMode('grid')}
-              className={`p-2 rounded-lg ${viewMode === 'grid' ? 'bg-sky-600 text-white' : 'bg-zinc-800 text-zinc-400'}`}
+              className="p-2 rounded-lg bg-sky-600 text-white"
             >
               <Grid3x3 size={18} />
             </button>
             <button
               onClick={() => setViewMode('list')}
-              className={`p-2 rounded-lg ${viewMode === 'list' ? 'bg-sky-600 text-white' : 'bg-zinc-800 text-zinc-400'}`}
+              className="p-2 rounded-lg bg-zinc-800 text-zinc-400"
             >
               <List size={18} />
             </button>

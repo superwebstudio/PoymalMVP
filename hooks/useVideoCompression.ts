@@ -77,7 +77,15 @@ export function useVideoCompression() {
             };
 
             video.onloadeddata = () => {
-                const stream = video.captureStream();
+                const stream =
+                    typeof (video as HTMLVideoElement & { captureStream?: () => MediaStream }).captureStream === 'function'
+                        ? (video as HTMLVideoElement & { captureStream: () => MediaStream }).captureStream()
+                        : null;
+
+                if (!stream) {
+                    reject(new Error('Video captureStream is not supported'));
+                    return;
+                }
                 
                 // Check if MediaRecorder supports the codec
                 const codecs = [

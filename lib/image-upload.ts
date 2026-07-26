@@ -29,7 +29,7 @@ export function dataUrlToFile(dataUrl: string, filename: string = "catch.jpg"): 
     }
   }
 
-  return new File([bytes], filename, { type: mime });
+  return new File([bytes.buffer as ArrayBuffer], filename, { type: mime });
 }
 
 export async function uploadCatchImage(options: {
