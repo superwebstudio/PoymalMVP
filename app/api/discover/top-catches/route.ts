@@ -8,31 +8,46 @@ export async function GET() {
     const oneWeekAgo = new Date();
     oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
 
-    const topCatches = await prisma.catch.findMany({
+    const include = {
+      user: {
+        select: {
+          id: true,
+          firstName: true,
+          username: true,
+          photoUrl: true,
+          isPro: true,
+        },
+      },
+      _count: {
+        select: { likes: true },
+      },
+    } as const;
+
+    let topCatches = await prisma.catch.findMany({
       where: {
         isPublic: true,
         createdAt: { gte: oneWeekAgo },
       },
       take: 20,
-      include: {
-        user: {
-          select: {
-            id: true,
-            firstName: true,
-            username: true,
-            photoUrl: true,
-            isPro: true,
-          },
-        },
-        _count: {
-          select: { likes: true },
-        },
-      },
+      include,
       orderBy: [
         { likes: { _count: 'desc' } },
         { createdAt: 'desc' },
       ],
     });
+
+    // Fallback for empty weeks / fresh DBs — still show recent public catches
+    if (topCatches.length === 0) {
+      topCatches = await prisma.catch.findMany({
+        where: { isPublic: true },
+        take: 20,
+        include,
+        orderBy: [
+          { likes: { _count: 'desc' } },
+          { createdAt: 'desc' },
+        ],
+      });
+    }
 
     return NextResponse.json(topCatches);
   } catch (error) {

@@ -12,9 +12,9 @@ export async function GET(request: NextRequest) {
         const feedType = (searchParams.get('type') || 'all') as 'all' | 'following';
 
         const feed = await getFeed(userId, feedType);
-        return NextResponse.json(feed);
+        return NextResponse.json(Array.isArray(feed) ? feed : []);
     } catch (error) {
         console.error('Feed error:', error);
-        return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+        return NextResponse.json([], { status: 500 });
     }
 }

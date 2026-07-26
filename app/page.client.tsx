@@ -33,8 +33,10 @@ export default function HomePageClient({ initialFeed, initialUser }: HomePageCli
 
     useEffect(() => {
         if (!initializedRef.current) {
-            if (initialFeed) {
-                useFeedStore.setState({ feed: initialFeed });
+            if (Array.isArray(initialFeed)) {
+                useFeedStore.setState({ feed: initialFeed, loading: false });
+            } else {
+                useFeedStore.setState({ feed: [], loading: false });
             }
             if (initialUser) {
                 useUserStore.setState({
@@ -201,7 +203,7 @@ export default function HomePageClient({ initialFeed, initialUser }: HomePageCli
                             exit={{ opacity: 0 }}
                             className="space-y-4 w-full"
                         >
-                            {feed.map((item, index) => {
+                            {Array.isArray(feed) && feed.map((item, index) => {
                                 return (
                                     <motion.div
                                         key={item.id}

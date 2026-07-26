@@ -43,10 +43,15 @@ export const useFeedStore = create<FeedStore>((set, get) => ({
       const feedResponse = await fetch(`/api/feed?type=${type}`, {
         credentials: 'include',
       });
-      const feedData = await feedResponse.json();
-      set({ feed: feedData, feedType: type });
+      const feedData: unknown = await feedResponse.json();
+      set({
+        feed: Array.isArray(feedData) ? feedData : [],
+        feedType: type,
+        loading: false,
+      });
     } catch (error) {
       console.error('Error fetching feed:', error);
+      set({ feed: [], loading: false });
     } finally {
       if (showTransition) {
         setTimeout(() => set({ isTransitioning: false }), 300);

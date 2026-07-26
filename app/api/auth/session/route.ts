@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from 'next/server';
 import {
   ACCESS_TOKEN_COOKIE,
   REFRESH_TOKEN_COOKIE,
-  clearSessionCookies,
   createSupabaseAuthClient,
   getAuthUser,
   setSessionCookies,
@@ -29,9 +28,7 @@ async function handleSession(request: NextRequest): Promise<NextResponse> {
     }
 
     if (!authUser) {
-      const response = NextResponse.json({ authenticated: false }, { status: 401 });
-      clearSessionCookies(response);
-      return response;
+      return NextResponse.json({ authenticated: false });
     }
 
     const { user } = await upsertAppUser(authUser);

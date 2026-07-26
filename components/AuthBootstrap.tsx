@@ -44,7 +44,10 @@ export function AuthBootstrap(): null {
         }
 
         const data = (await response.json()) as SessionResponse;
-        if (!active || !data.authenticated || !data.user) {
+        if (!active) return;
+
+        if (!data.authenticated || !data.user) {
+          clearUser();
           return;
         }
 
