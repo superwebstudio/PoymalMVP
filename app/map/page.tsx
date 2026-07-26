@@ -1,3 +1,4 @@
+import { Suspense } from 'react';
 import { getSavedLocations } from '@/app/api/saved-locations/_service';
 import { getCurrentUser } from '@/lib/get-current-user';
 import MapPageClient from './page.client';
@@ -6,9 +7,6 @@ export const dynamic = 'force-dynamic';
 
 // Server Component
 export default async function MapPage() {
-    // We try to get the user ID. 
-    // Note: For now, since we don't strictly have cookies, this might return null or fallback.
-    // If null, the client component will just see empty saved locations initially.
     const user = await getCurrentUser();
 
     let initialSavedLocations: any[] = [];
@@ -17,6 +15,14 @@ export default async function MapPage() {
     }
 
     return (
-        <MapPageClient initialSavedLocations={initialSavedLocations} />
+        <Suspense
+          fallback={
+            <div className="flex min-h-screen items-center justify-center bg-zinc-950 text-zinc-400">
+              Loading...
+            </div>
+          }
+        >
+          <MapPageClient initialSavedLocations={initialSavedLocations} />
+        </Suspense>
     );
 }

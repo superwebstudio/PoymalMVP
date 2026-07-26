@@ -30,7 +30,7 @@ const catchSchema = z.object({
 
 type CatchFormValues = z.infer<typeof catchSchema>;
 
-export default function LogCatchPage() {
+function LogCatchPageContent() {
   const { dict, lang } = useI18n();
   const store = useLogStore();
   const searchParams = useSearchParams();
@@ -215,5 +215,19 @@ export default function LogCatchPage() {
         <BottomNav />
       </div>
     </FormProvider>
+  );
+}
+
+export default function LogCatchPage() {
+  return (
+    <React.Suspense
+      fallback={
+        <div className="flex min-h-screen items-center justify-center bg-zinc-950 text-zinc-400">
+          Loading...
+        </div>
+      }
+    >
+      <LogCatchPageContent />
+    </React.Suspense>
   );
 }

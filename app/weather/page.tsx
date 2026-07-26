@@ -12,7 +12,7 @@ import { TideChart } from '@/components/map/weather/TideChart';
 import { TelegramBackButton } from '@/components/TelegramBackButton';
 import { useRouter, useSearchParams } from 'next/navigation';
 
-export default function WeatherPage() {
+function WeatherPageContent() {
   const { dict } = useI18n();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -153,5 +153,19 @@ export default function WeatherPage() {
 
       <BottomNav />
     </div>
+  );
+}
+
+export default function WeatherPage() {
+  return (
+    <React.Suspense
+      fallback={
+        <div className="flex min-h-screen items-center justify-center bg-zinc-950 text-zinc-400">
+          Loading...
+        </div>
+      }
+    >
+      <WeatherPageContent />
+    </React.Suspense>
   );
 }

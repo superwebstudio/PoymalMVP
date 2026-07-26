@@ -1,12 +1,12 @@
 "use client";
 
-import React, { useEffect, useState } from 'react';
+import React, { Suspense, useEffect, useState } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { useI18n } from '@/lib/useI18n';
 import { Check, Loader2 } from 'lucide-react';
 import { useUserStore } from '@/stores/useUserStore';
 
-export default function PaymentVerifyPage() {
+function PaymentVerifyContent() {
   const { dict } = useI18n();
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -20,7 +20,6 @@ export default function PaymentVerifyPage() {
       return;
     }
 
-    // Poll for payment status
     const verifyPayment = async () => {
       try {
         if (!userId) {
@@ -42,7 +41,6 @@ export default function PaymentVerifyPage() {
           } else if (data.status === 'failed') {
             setStatus('failed');
           } else {
-            // Still pending, check again
             setTimeout(verifyPayment, 3000);
           }
         } else {
@@ -54,7 +52,7 @@ export default function PaymentVerifyPage() {
       }
     };
 
-    verifyPayment();
+    void verifyPayment();
   }, [transactionId, router, userId]);
 
   return (
@@ -77,6 +75,7 @@ export default function PaymentVerifyPage() {
           <>
             <p className="text-red-400 font-semibold">{(dict as any).paymentVerificationFailed || 'Payment verification failed'}</p>
             <button
+              type="button"
               onClick={() => router.push('/pro')}
               className="mt-4 px-4 py-2 bg-sky-600 text-white rounded-lg"
             >
@@ -89,3 +88,16 @@ export default function PaymentVerifyPage() {
   );
 }
 
+export default function PaymentVerifyPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex min-h-screen items-center justify-center bg-zinc-950 text-zinc-400">
+          Loading...
+        </div>
+      }
+    >
+      <PaymentVerifyContent />
+    </Suspense>
+  );
+}
