@@ -1,36 +1,39 @@
 import type { Metadata } from "next";
+import { connection } from "next/server";
 import { notFound, redirect } from "next/navigation";
 import { AdminSidebar } from "@/admin/components/AdminSidebar";
 import { getCurrentUser } from "@/lib/get-current-user";
 import "@/admin/admin.css";
 
 export const metadata: Metadata = {
-    title: "Ulov Admin Dashboard",
-    description: "Admin dashboard for Ulov fishing app",
+  title: "Ulov Admin Dashboard",
+  description: "Admin dashboard for Ulov fishing app",
 };
 
+export const dynamic = "force-dynamic";
+
 export default async function AdminLayout({
-    children,
+  children,
 }: Readonly<{
-    children: React.ReactNode;
+  children: React.ReactNode;
 }>) {
-    const user = await getCurrentUser();
-    if (!user) {
-        redirect("/login?next=/admin");
-    }
-    if (!user.isAdmin) {
-        notFound();
-    }
+  // Opt the entire /admin tree out of static prerender (uses cookies + DB).
+  await connection();
 
-    return (
-        <div className="admin-layout">
-            <AdminSidebar />
-            <main className="admin-main">
-                <div className="admin-content">
-                    {children}
-                </div>
-            </main>
-        </div>
-    );
+  const user = await getCurrentUser();
+  if (!user) {
+    redirect("/login?next=/admin");
+  }
+  if (!user.isAdmin) {
+    notFound();
+  }
+
+  return (
+    <div className="admin-layout">
+      <AdminSidebar />
+      <main className="admin-main">
+        <div className="admin-content">{children}</div>
+      </main>
+    </div>
+  );
 }
-

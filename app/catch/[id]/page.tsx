@@ -1,6 +1,8 @@
 import { getCatch, getRelatedCatches } from '@/app/api/catch/_service';
 import CatchDetailPageClient from './page.client';
 
+export const dynamic = 'force-dynamic';
+
 // Server Component
 export default async function CatchDetailPage({ 
   params, 

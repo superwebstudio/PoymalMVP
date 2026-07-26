@@ -2,6 +2,8 @@ import { getFeed } from '@/app/api/feed/_service';
 import { getCurrentUser } from '@/lib/get-current-user';
 import HomePageClient from './page.client';
 
+export const dynamic = 'force-dynamic';
+
 // Server Component
 export default async function HomePage() {
   // Fetch public feed on the server

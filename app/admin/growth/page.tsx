@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic';
+
 import prisma from "@/lib/prisma";
 import { GrowthClient } from "@/admin/growth/GrowthClient";
 

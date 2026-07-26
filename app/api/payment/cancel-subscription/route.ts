@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { verifyAuth } from '@/lib/auth';
-import { stripe } from '@/lib/stripe';
+import { getStripe } from '@/lib/stripe';
 import { getSubscriptionPeriodEnd } from '@/lib/pro-subscription';
 
 export const dynamic = 'force-dynamic';
@@ -50,6 +50,8 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       );
     }
+
+    const stripe = getStripe();
 
     if (mode === 'immediate') {
       await stripe.subscriptions.cancel(user.stripeSubscriptionId);

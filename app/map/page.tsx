@@ -2,6 +2,8 @@ import { getSavedLocations } from '@/app/api/saved-locations/_service';
 import { getCurrentUser } from '@/lib/get-current-user';
 import MapPageClient from './page.client';
 
+export const dynamic = 'force-dynamic';
+
 // Server Component
 export default async function MapPage() {
     // We try to get the user ID. 

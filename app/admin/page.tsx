@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic';
+
 import prisma from "@/lib/prisma";
 import { DashboardClient } from "@/admin/DashboardClient";
 import type { DashboardMetrics, UserSegments, FunnelStep } from "@/admin/types";

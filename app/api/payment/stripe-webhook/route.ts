@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import type Stripe from 'stripe';
-import { stripe } from '@/lib/stripe';
+import { getStripe } from '@/lib/stripe';
 import {
   activatePro,
   getSubscriptionPeriodEnd,
@@ -25,6 +25,7 @@ export async function POST(request: NextRequest) {
   }
 
   const rawBody = await request.text();
+  const stripe = getStripe();
 
   let event: Stripe.Event;
   try {

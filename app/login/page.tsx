@@ -3,6 +3,8 @@ import { LoginForm } from '@/components/LoginForm';
 import { getCurrentUser } from '@/lib/get-current-user';
 import { getSafeRedirect } from '@/lib/supabase-auth-server';
 
+export const dynamic = 'force-dynamic';
+
 interface LoginPageProps {
   searchParams: Promise<{
     error?: string;

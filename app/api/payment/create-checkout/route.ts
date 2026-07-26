@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { verifyAuth } from '@/lib/auth';
-import { PRO_MONTHLY_AMOUNT_CENTS, PRO_MONTHLY_CURRENCY, stripe } from '@/lib/stripe';
+import { PRO_MONTHLY_AMOUNT_CENTS, PRO_MONTHLY_CURRENCY, getStripe } from '@/lib/stripe';
 
 export const dynamic = 'force-dynamic';
 
@@ -76,6 +76,7 @@ export async function POST(request: NextRequest) {
     const baseUrl = appBaseUrl(request);
     const priceId = process.env.STRIPE_PRICE_ID_MONTHLY;
 
+    const stripe = getStripe();
     const session = await stripe.checkout.sessions.create({
       mode: 'subscription',
       ...(user.stripeCustomerId

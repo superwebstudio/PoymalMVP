@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { verifyAuth } from '@/lib/auth';
-import { stripe } from '@/lib/stripe';
+import { getStripe } from '@/lib/stripe';
 import {
   activatePro,
   getSubscriptionPeriodEnd,
@@ -25,10 +25,11 @@ export async function POST(request: NextRequest) {
     }
 
     const body = (await request.json()) as { sessionId?: string };
-    if (!body.sessionId) {
+    if (!body.sessionId || typeof body.sessionId !== 'string') {
       return NextResponse.json({ error: 'sessionId is required' }, { status: 400 });
     }
 
+    const stripe = getStripe();
     const session = await stripe.checkout.sessions.retrieve(body.sessionId);
     const userId =
       session.metadata?.userId || session.client_reference_id || undefined;
