@@ -134,7 +134,6 @@ export async function upsertAppUser(
     getMetadataString(authUser, 'given_name', 'full_name', 'name') ??
     email?.split('@')[0] ??
     null;
-  const username = getMetadataString(authUser, 'user_name', 'preferred_username');
   const photoUrl = getMetadataString(authUser, 'avatar_url', 'picture');
 
   const existingUser = await prisma.user.findUnique({
@@ -147,12 +146,11 @@ export async function upsertAppUser(
       data: {
         email,
         firstName: existingUser.firstName ?? firstName,
-        username: existingUser.username ?? username,
         photoUrl: existingUser.photoUrl ?? photoUrl,
       },
     });
 
-    return { user, isNewUser: false };
+    return { user, isNewUser: !user.username };
   }
 
   const user = await prisma.user.create({
@@ -160,7 +158,7 @@ export async function upsertAppUser(
       authId: authUser.id,
       email,
       firstName,
-      username,
+      username: null,
       photoUrl,
       referralCode: await createUniqueReferralCode(),
     },

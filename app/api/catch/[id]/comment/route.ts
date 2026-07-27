@@ -3,7 +3,7 @@ import prisma from '@/lib/prisma';
 import { verifyAuth } from '@/lib/auth';
 import { createCommentSchema, updateCommentSchema, validateBody, formatZodError } from '@/lib/validations';
 import { checkRateLimit, rateLimitResponse, COMMENT_LIMIT, addRateLimitHeaders } from '@/lib/rate-limit';
-import { createCatchNotification } from '@/lib/create-notification';
+import { createCatchNotification, removeCommentNotification } from '@/lib/create-notification';
 
 (BigInt.prototype as any).toJSON = function () {
     return this.toString();
@@ -78,6 +78,7 @@ export async function POST(
             actorId: userId,
             catchId: id,
             type: 'comment',
+            commentId: comment.id,
             commentPreview: content.trim(),
         });
 
@@ -166,6 +167,12 @@ export async function DELETE(
         // Delete the comment
         await prisma.comment.delete({
             where: { id: commentId },
+        });
+
+        void removeCommentNotification({
+            actorId: userId,
+            catchId: id,
+            commentId,
         });
 
         return NextResponse.json({ success: true });

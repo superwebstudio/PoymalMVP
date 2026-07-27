@@ -1,35 +1,55 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useI18n } from '@/lib/useI18n';
+import { cn } from '@/lib/utils';
 
 interface FollowButtonProps {
   userId: string;
   isFollowing: boolean;
   currentUserId: string;
+  compact?: boolean;
+  onFollowChange?: (isFollowing: boolean) => void;
 }
 
 export const FollowButton: React.FC<FollowButtonProps> = ({
   userId,
   isFollowing: initialFollowing,
-  currentUserId
+  currentUserId,
+  compact = false,
+  onFollowChange,
 }) => {
   const { dict } = useI18n();
   const [isFollowing, setIsFollowing] = useState(initialFollowing);
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleFollow = async () => {
+  useEffect(() => {
+    setIsFollowing(initialFollowing);
+  }, [initialFollowing]);
+
+  const handleFollow = async (
+    event: React.MouseEvent<HTMLButtonElement>,
+  ): Promise<void> => {
+    event.preventDefault();
+    event.stopPropagation();
+    if (!currentUserId || currentUserId === userId) return;
+
     setIsLoading(true);
     try {
-      // TODO: Implement API call
       const response = await fetch('/api/follow', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId, action: isFollowing ? 'unfollow' : 'follow' }),
+        credentials: 'include',
+        body: JSON.stringify({
+          userId,
+          action: isFollowing ? 'unfollow' : 'follow',
+        }),
       });
 
       if (response.ok) {
-        setIsFollowing(!isFollowing);
+        const next = !isFollowing;
+        setIsFollowing(next);
+        onFollowChange?.(next);
       }
     } catch (error) {
       console.error('Follow error:', error);
@@ -40,12 +60,16 @@ export const FollowButton: React.FC<FollowButtonProps> = ({
 
   return (
     <button
+      type="button"
       onClick={handleFollow}
       disabled={isLoading}
-      className={`w-full py-2 rounded-lg font-semibold transition-colors ${isFollowing
+      className={cn(
+        'rounded-lg font-semibold transition-colors disabled:opacity-50',
+        compact ? 'shrink-0 px-3 py-1.5 text-sm' : 'w-full py-2',
+        isFollowing
           ? 'bg-zinc-800 text-zinc-300 hover:bg-zinc-700'
-          : 'bg-sky-600 text-white hover:bg-sky-500'
-        } disabled:opacity-50`}
+          : 'bg-sky-600 text-white hover:bg-sky-500',
+      )}
     >
       {isLoading ? '...' : isFollowing ? dict.unfollow : dict.follow}
     </button>

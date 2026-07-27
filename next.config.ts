@@ -9,6 +9,15 @@ const nextConfig: NextConfig = {
         hostname: "api.mapbox.com",
         pathname: "/styles/v1/**",
       },
+      {
+        protocol: "https",
+        hostname: "spgkzvwnopkuqfxhazqs.supabase.co",
+        pathname: "/storage/v1/object/public/**",
+      },
+      {
+        protocol: "https",
+        hostname: "lh3.googleusercontent.com",
+      },
     ],
   },
 };

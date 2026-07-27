@@ -1,19 +1,14 @@
 import { getUserProfile } from '@/app/api/user/_service';
-import { getCurrentUser } from '@/lib/get-current-user';
+import { getCurrentUserSummary } from '@/lib/get-current-user-summary';
 import ProfilePageClient from './page.client';
 
 export const dynamic = 'force-dynamic';
 
-// Server Component
 export default async function ProfilePage() {
-    const currentUser = await getCurrentUser();
-    
-    let initialUser = null;
-    if (currentUser?.id) {
-        initialUser = await getUserProfile(currentUser.id);
-    }
+  const currentUser = await getCurrentUserSummary();
+  const initialUser = currentUser?.id
+    ? await getUserProfile(currentUser.id)
+    : null;
 
-    return (
-        <ProfilePageClient initialUser={initialUser} />
-    );
+  return <ProfilePageClient initialUser={initialUser as never} />;
 }

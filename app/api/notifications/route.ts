@@ -11,11 +11,16 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: auth.error }, { status: auth.status });
     }
 
-    const notifications = await prisma.notification.findMany({
-      where: { userId: auth.userId },
-      orderBy: { createdAt: 'desc' },
-      take: 50,
-    });
+    const [notifications, unreadCount] = await Promise.all([
+      prisma.notification.findMany({
+        where: { userId: auth.userId },
+        orderBy: { createdAt: 'desc' },
+        take: 50,
+      }),
+      prisma.notification.count({
+        where: { userId: auth.userId, isRead: false },
+      }),
+    ]);
 
     const actorIds = [
       ...new Set(
@@ -42,8 +47,6 @@ export async function GET(request: NextRequest) {
       ...n,
       actor: n.actorId ? actorMap.get(n.actorId) ?? null : null,
     }));
-
-    const unreadCount = notifications.filter((n) => !n.isRead).length;
 
     return NextResponse.json({ notifications: enriched, unreadCount });
   } catch (error) {

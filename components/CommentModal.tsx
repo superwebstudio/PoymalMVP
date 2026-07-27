@@ -7,6 +7,7 @@ import { useI18n } from '@/lib/useI18n';
 import Link from 'next/link';
 import { useNotificationStore } from '@/stores/useNotificationStore';
 import { Backdrop } from '@/components/ui/Backdrop';
+import { CachedImage } from '@/components/CachedImage';
 
 interface CommentModalProps {
   isOpen: boolean;
@@ -317,7 +318,12 @@ export const CommentModal: React.FC<CommentModalProps> = ({
                           <Link href={`/user/${commentItem.user.id}`} className="flex-shrink-0">
                             <div className="w-10 h-10 rounded-full bg-zinc-800 overflow-hidden">
                               {commentItem.user.photoUrl ? (
-                                <img src={commentItem.user.photoUrl} alt="" className="w-full h-full object-cover" />
+                                <CachedImage
+                                  src={commentItem.user.photoUrl}
+                                  alt=""
+                                  className="h-full w-full"
+                                  sizes="40px"
+                                />
                               ) : (
                                 <div className="w-full h-full flex items-center justify-center text-zinc-500 text-sm">
                                   {commentItem.user.firstName?.[0] || commentItem.user.username?.[0] || '?'}

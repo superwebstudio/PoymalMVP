@@ -36,6 +36,7 @@ export function useMapCatches(
 ) {
   const [catches, setCatches] = useState<MapCatch[]>([]);
   const [loading, setLoading] = useState(true);
+  const [locationMode, setLocationMode] = useState<'exact' | 'heatmap'>('heatmap');
   const fetchTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const requestIdRef = useRef(0);
   const modeRef = useRef(mode);
@@ -97,11 +98,17 @@ export function useMapCatches(
         if (response.ok) {
           const data = (await response.json()) as {
             catches?: MapCatch[];
+            locationMode?: 'exact' | 'heatmap';
           } | MapCatch[];
           const next = Array.isArray(data) ? data : data.catches || [];
+          const nextMode = Array.isArray(data)
+            ? 'exact'
+            : data.locationMode || (isMyCatches ? 'exact' : 'heatmap');
+          setLocationMode(nextMode);
           setCatches(isMyCatches ? onlyOwnCatches(next, userId) : next);
         } else {
           setCatches([]);
+          setLocationMode(isMyCatches ? 'exact' : 'heatmap');
         }
       } catch (error) {
         console.error("Error fetching map catches:", error);
@@ -141,5 +148,5 @@ export function useMapCatches(
     });
   }, []);
 
-  return { catches, loading, mergeCatches, upsertCatch };
+  return { catches, loading, locationMode, mergeCatches, upsertCatch };
 }

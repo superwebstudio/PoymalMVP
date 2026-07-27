@@ -13,7 +13,9 @@ import { MapContainer } from '@/components/map/MapContainer';
 import { MapControls } from '@/components/map/MapControls';
 import { UserLocationMarker } from '@/components/map/UserLocationMarker';
 import { CatchMarkers } from '@/components/map/CatchMarkers';
+import { CatchHeatmap } from '@/components/map/CatchHeatmap';
 import { SearchSheet } from '@/components/map/SearchSheet/SearchSheet';
+import { getAccessTier } from '@/lib/access-tier';
 import { useMapInitialization } from '@/components/map/hooks/useMapInitialization';
 import { useMapLongPress } from '@/components/map/hooks/useMapLongPress';
 import { useUserLocation } from '@/components/map/hooks/useUserLocation';
@@ -42,7 +44,10 @@ interface MapPageClientProps {
 
 export default function MapPageClient({ initialSavedLocations }: MapPageClientProps) {
     const { dict } = useI18n();
-    const { userId } = useUserStore();
+    const { userId, currentUser } = useUserStore();
+    const accessTier = getAccessTier(
+        userId ? { id: userId, isPro: currentUser?.isPro } : null,
+    );
     const searchParams = useSearchParams();
 
     // Local state
@@ -184,7 +189,9 @@ export default function MapPageClient({ initialSavedLocations }: MapPageClientPr
         }
     }, [map]);
     const { userLocation, centerOnLocation } = useUserLocation(map);
-    const { catches, loading: catchesLoading, mergeCatches, upsertCatch } = useMapCatches(mode, filters, userId, selectedSpecies, mapBounds, mapZoom);
+    const { catches, loading: catchesLoading, locationMode, mergeCatches, upsertCatch } = useMapCatches(mode, filters, userId, selectedSpecies, mapBounds, mapZoom);
+    const showExactMarkers = mode === 'my-spots' || locationMode === 'exact';
+    const showHeatmap = mode !== 'my-spots' && locationMode === 'heatmap';
     const { setSelectedLocation } = useSelectedLocation(map);
     const liveMode = useLiveMapStore((state) => state.liveMode);
     const toggleLiveMode = useLiveMapStore((state) => state.toggleLiveMode);
@@ -197,10 +204,11 @@ export default function MapPageClient({ initialSavedLocations }: MapPageClientPr
         onNewCatches: mergeCatches,
     });
 
-    // Demo sequence: when Live Mode turns on, inject sample activity near map center
+    // Optional demo: only when ?liveDemo=1 (avoids fake network/marker churn by default)
     const liveDemoRanRef = useRef(false);
     useEffect(() => {
-        if (!liveMode) {
+        const wantsDemo = searchParams.get('liveDemo') === '1';
+        if (!liveMode || !wantsDemo) {
             liveDemoRanRef.current = false;
             return;
         }
@@ -222,7 +230,7 @@ export default function MapPageClient({ initialSavedLocations }: MapPageClientPr
         );
 
         return cancel;
-    }, [liveMode, map, mergeCatches]);
+    }, [liveMode, map, mergeCatches, searchParams]);
 
     // Fit map to My Catches only after the own-catch fetch finishes
     const fittedMyCatchesKeyRef = useRef<string | null>(null);
@@ -271,6 +279,9 @@ export default function MapPageClient({ initialSavedLocations }: MapPageClientPr
     }, [mode, catches, catchesLoading, map, userId]);
 
     const handleModeChange = (nextMode: typeof mode) => {
+        if (accessTier === 'guest' && nextMode === 'my-spots') {
+            return;
+        }
         setMode(nextMode);
         if (nextMode === 'my-spots') {
             fittedMyCatchesKeyRef.current = null;
@@ -505,7 +516,7 @@ export default function MapPageClient({ initialSavedLocations }: MapPageClientPr
             useMapStore.getState().setSelectedCatch(null);
             useMapStore.getState().setFocusPin(null);
         },
-        enabled: !showDroppedPinSheet && !showSavedLocationSheet,
+        enabled: accessTier !== 'guest' && !showDroppedPinSheet && !showSavedLocationSheet,
         duration: 500,
         moveThreshold: 0.001,
         excludedSelectors: ['.mapboxgl-marker', '.bottom-sheet-container', 'button', '.weather-widget'],
@@ -523,10 +534,10 @@ export default function MapPageClient({ initialSavedLocations }: MapPageClientPr
         <div className="flex flex-col h-screen bg-zinc-950 text-zinc-100 relative">
             <MapContainer mapTheme={mapTheme} mapContainerRef={mapContainer} />
 
-            <MapModeSwitcher mode={mode} onModeChange={handleModeChange} />
+            <MapModeSwitcher mode={mode} onModeChange={handleModeChange} tier={accessTier} />
 
             {/* Show saved locations only in "my-spots" mode */}
-            {mode === 'my-spots' && (
+            {mode === 'my-spots' && accessTier !== 'guest' && (
                 <SavedLocationMarkers
                     map={map}
                     locations={savedLocations}
@@ -544,27 +555,30 @@ export default function MapPageClient({ initialSavedLocations }: MapPageClientPr
                 />
             )}
 
-            <DroppedPinMarker map={map} location={droppedPin} />
+            <DroppedPinMarker map={map} location={accessTier === 'guest' ? null : droppedPin} />
             <FocusLocationMarker map={map} location={focusPin} />
 
-            {userLocation && (
+            {userLocation && accessTier !== 'guest' && (
                 <WeatherWidget
                     latitude={userLocation.lat}
                     longitude={userLocation.lng}
                 />
             )}
 
+            {!showNearbySheet && (
             <MapControls
                 isBottomNavVisible={isBottomNavVisible}
                 onToggleBottomNav={() => setIsBottomNavVisible(!isBottomNavVisible)}
                 onCenterLocation={handleCenterLocation}
                 onShowNearby={handleToggleNearbySheet}
                 liveMode={liveMode}
-                onToggleLiveMode={toggleLiveMode}
+                onToggleLiveMode={accessTier === 'guest' ? undefined : toggleLiveMode}
             />
+            )}
 
             {userLocation && <UserLocationMarker map={map} userLocation={userLocation} />}
 
+            {showExactMarkers && (
             <CatchMarkers
                 map={map}
                 catches={catches}
@@ -573,7 +587,9 @@ export default function MapPageClient({ initialSavedLocations }: MapPageClientPr
                 currentUserId={userId}
                 selectedCatchId={selectedCatch?.id}
             />
+            )}
 
+            <CatchHeatmap map={map} catches={catches} enabled={showHeatmap} />
             {liveMode && (
                 <>
                     <LiveCatchMarkers
@@ -619,9 +635,13 @@ export default function MapPageClient({ initialSavedLocations }: MapPageClientPr
                         setSelectedPlace(null);
                         setSelectedSpecies(null);
                     }}
-                    onCatchClick={(catchItem: any) => {
+                    onCatchClick={(catchItem) => {
+                        if (!showExactMarkers) {
+                            window.location.href = '/pro';
+                            return;
+                        }
                         setShowNearbySheet(false);
-                        handleCatchClick(catchItem, map);
+                        handleCatchClick(catchItem as MapCatch, map);
                     }}
                     onZoomToCatches={(bounds) => {
                         if (!map.current || !bounds) return;
@@ -633,13 +653,13 @@ export default function MapPageClient({ initialSavedLocations }: MapPageClientPr
                 />
             )}
 
-            <DroppedPinSheet />
-            <SavedLocationSheet />
-            <CatchDetailsSheet />
+            {accessTier !== 'guest' && <DroppedPinSheet />}
+            {accessTier !== 'guest' && <SavedLocationSheet />}
+            {showExactMarkers && <CatchDetailsSheet />}
             <BottomNav isVisible={isBottomNavVisible} />
 
             <MyCatchesSheet
-                isOpen={mode === 'my-spots' && !weatherExpanded && !showSearchSheet}
+                isOpen={mode === 'my-spots' && accessTier !== 'guest' && !weatherExpanded && !showSearchSheet}
                 catches={catches}
                 onCatchClick={(catchItem) => handleCatchClick(catchItem, map)}
                 onClose={() => setMode('hotspots')}

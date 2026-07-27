@@ -7,11 +7,13 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { useI18n } from '@/lib/useI18n';
 import { CachedImage } from '@/components/CachedImage';
+import { useUserStore } from '@/stores/useUserStore';
 
 type LeaderboardCategory = 'total' | 'species' | 'streak' | 'following' | 'country';
 
 export const LeaderboardContent = () => {
   const { dict } = useI18n();
+  const currentUser = useUserStore((s) => s.currentUser);
   const [category, setCategory] = useState<LeaderboardCategory>('total');
   const [leaderboard, setLeaderboard] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -19,41 +21,40 @@ export const LeaderboardContent = () => {
   const [selectedCountry, setSelectedCountry] = useState<string>('');
   const [showCountrySearch, setShowCountrySearch] = useState(false);
   const [countrySearchQuery, setCountrySearchQuery] = useState('');
-  const [userCountry, setUserCountry] = useState<string>('');
-
-  // Get current user's country
-  useEffect(() => {
-    fetch('/api/user/current')
-      .then(res => res.json())
-      .then(data => {
-        if (data?.country) {
-          setUserCountry(data.country);
-          if (category === 'country' && !selectedCountry) {
-            setSelectedCountry(data.country);
-          }
-        }
-      })
-      .catch(() => { });
-  }, []);
+  const userCountry = currentUser?.country || '';
 
   useEffect(() => {
+    if (userCountry && category === 'country' && !selectedCountry) {
+      setSelectedCountry(userCountry);
+    }
+  }, [userCountry, category, selectedCountry]);
+
+  useEffect(() => {
+    let cancelled = false;
     setLoading(true);
-    const url = category === 'country' && selectedCountry
-      ? `/api/leaderboard?category=${category}&country=${encodeURIComponent(selectedCountry)}`
-      : `/api/leaderboard?category=${category}`;
+
+    const url =
+      category === 'country' && selectedCountry
+        ? `/api/leaderboard?category=${category}&country=${encodeURIComponent(selectedCountry)}`
+        : `/api/leaderboard?category=${category}`;
 
     fetch(url)
-      .then(res => res.json())
-      .then(data => {
-        // Ensure data is an array
+      .then((res) => res.json())
+      .then((data) => {
+        if (cancelled) return;
         setLeaderboard(Array.isArray(data) ? data : []);
         setLoading(false);
       })
-      .catch(err => {
+      .catch((err) => {
         console.error(err);
+        if (cancelled) return;
         setLeaderboard([]);
         setLoading(false);
       });
+
+    return () => {
+      cancelled = true;
+    };
   }, [category, selectedCountry]);
 
   const categories = [

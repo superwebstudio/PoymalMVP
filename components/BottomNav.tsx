@@ -2,7 +2,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Home, Map, PlusCircle, User, Globe, Users, Newspaper, Trophy } from 'lucide-react';
+import { Home, Map, PlusCircle, User, Globe, Newspaper, Trophy, Search } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { useI18n } from '@/lib/useI18n';
@@ -12,9 +12,9 @@ import { motion, AnimatePresence } from 'framer-motion';
 
 interface BottomNavProps {
   isVisible?: boolean;
-  feedType?: 'all' | 'following' | 'news' | 'leaderboard';
+  feedType?: 'all' | 'news' | 'leaderboard';
   currentView?: 'feed' | 'news';
-  onFeedTypeChange?: (type: 'all' | 'following' | 'news' | 'leaderboard') => void;
+  onFeedTypeChange?: (type: 'all' | 'news' | 'leaderboard') => void;
 }
 
 export const BottomNav = ({
@@ -77,13 +77,11 @@ export const BottomNav = ({
 
     document.addEventListener('focusin', handleFocusChange, true);
     document.addEventListener('focusout', handleFocusChange, true);
-
-    const interval = setInterval(checkIfInputFocused, 200);
+    checkIfInputFocused();
 
     return () => {
       document.removeEventListener('focusin', handleFocusChange, true);
       document.removeEventListener('focusout', handleFocusChange, true);
-      clearInterval(interval);
       if (checkTimeoutRef.current) {
         clearTimeout(checkTimeoutRef.current);
       }
@@ -93,8 +91,9 @@ export const BottomNav = ({
   const navItems = [
     { label: dict.feed, href: '/', icon: Home },
     { label: (dict as any).map || 'Map', href: '/map', icon: Map },
-    { label: dict.post, href: userId ? '/log' : '/login?next=/log', icon: PlusCircle },
-    { label: dict.profile, href: userId ? '/profile' : '/login?next=/profile', icon: User },
+    { label: dict.post, href: '/log', icon: PlusCircle },
+    { label: dict.search || 'Search', href: '/search', icon: Search },
+    { label: dict.profile, href: '/profile', icon: User },
   ];
 
   const menuItems = [
@@ -104,24 +103,18 @@ export const BottomNav = ({
       label: mounted ? dict.all : 'All'
     },
     {
-      type: 'following' as const,
-      icon: Users,
-      label: mounted ? dict.following : 'Following'
-    },
-    {
       type: 'news' as const,
       icon: Newspaper,
       label: mounted ? (dict as any).news || 'News' : 'News'
     },
   ];
 
-  const isActive = (type: 'all' | 'following' | 'news' | 'leaderboard') => {
+  const isActive = (type: 'all' | 'news' | 'leaderboard') => {
     if (!feedType || !currentView) return false;
     if (type === 'news') {
       return currentView === 'news';
     }
     if (type === 'leaderboard') {
-      // Leaderboard is now part of news, so it's active when news is active
       return currentView === 'news';
     }
     return feedType === type && currentView === 'feed';
@@ -129,7 +122,7 @@ export const BottomNav = ({
 
   const activeItem = menuItems.find(item => isActive(item.type)) || menuItems[0];
 
-  const handleItemClick = (type: 'all' | 'following' | 'news' | 'leaderboard') => {
+  const handleItemClick = (type: 'all' | 'news' | 'leaderboard') => {
     // Close menu first
     setMenuOpen(false);
 
@@ -248,7 +241,7 @@ export const BottomNav = ({
 
     // Mode 2: Slide mode - they slid to an item
     if (wasDragging && hoveredItem) {
-      handleItemClick(hoveredItem as 'all' | 'following' | 'news' | 'leaderboard');
+      handleItemClick(hoveredItem as 'all' | 'news' | 'leaderboard');
       setIsDragging(false);
       setTouchStartY(null);
       setTouchStartTime(null);
@@ -325,7 +318,7 @@ export const BottomNav = ({
 
     // Mode 2: Slide mode - they slid to an item
     if (wasDragging && hoveredItem) {
-      handleItemClick(hoveredItem as 'all' | 'following' | 'news' | 'leaderboard');
+      handleItemClick(hoveredItem as 'all' | 'news' | 'leaderboard');
       setIsDragging(false);
       setTouchStartY(null);
       setTouchStartTime(null);
@@ -595,7 +588,10 @@ export const BottomNav = ({
         }}
       >
         {navItems.map((item) => {
-          const isActiveNav = pathname === item.href;
+          const isActiveNav =
+            item.href === '/search'
+              ? pathname.startsWith('/search')
+              : pathname === item.href;
           const isHome = item.href === '/';
           const showActiveIndicator = isHome && feedType && isActive(activeItem.type);
           const canShowMenu = feedType && onFeedTypeChange;

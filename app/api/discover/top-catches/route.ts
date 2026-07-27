@@ -1,9 +1,9 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 
-export const dynamic = 'force-dynamic';
+export const revalidate = 60;
 
-export async function GET() {
+export async function GET(): Promise<NextResponse> {
   try {
     const oneWeekAgo = new Date();
     oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
@@ -36,7 +36,6 @@ export async function GET() {
       ],
     });
 
-    // Fallback for empty weeks / fresh DBs — still show recent public catches
     if (topCatches.length === 0) {
       topCatches = await prisma.catch.findMany({
         where: { isPublic: true },
@@ -55,5 +54,3 @@ export async function GET() {
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
 }
-
-

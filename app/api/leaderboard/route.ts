@@ -1,117 +1,184 @@
 import { NextResponse } from 'next/server';
+import { Prisma } from '@prisma/client';
 import prisma from '@/lib/prisma';
 
-(BigInt.prototype as any).toJSON = function () {
-  return this.toString();
+export const dynamic = 'force-dynamic';
+export const revalidate = 60;
+
+type LeaderboardRow = {
+  id: string;
+  firstName: string | null;
+  username: string | null;
+  photoUrl: string | null;
+  isPro: boolean;
+  country: string | null;
+  score: number | string;
+  totalWeight?: number;
+  _count: {
+    catches: number;
+    followers: number;
+  };
 };
 
-export const dynamic = 'force-dynamic';
+async function attachFollowerCounts(
+  rows: Array<Omit<LeaderboardRow, '_count'> & { catchCount: number }>,
+): Promise<LeaderboardRow[]> {
+  if (rows.length === 0) return [];
 
-export async function GET(req: Request) {
+  const ids = rows.map((row) => row.id);
+  const followerGroups = await prisma.follow.groupBy({
+    by: ['followingId'],
+    where: { followingId: { in: ids } },
+    _count: { _all: true },
+  });
+  const followersByUser = new Map(
+    followerGroups.map((group) => [group.followingId, group._count._all]),
+  );
+
+  return rows.map((row) => ({
+    id: row.id,
+    firstName: row.firstName,
+    username: row.username,
+    photoUrl: row.photoUrl,
+    isPro: row.isPro,
+    country: row.country,
+    score: row.score,
+    totalWeight: row.totalWeight,
+    _count: {
+      catches: row.catchCount,
+      followers: followersByUser.get(row.id) ?? 0,
+    },
+  }));
+}
+
+export async function GET(req: Request): Promise<NextResponse> {
   try {
     const { searchParams } = new URL(req.url);
     const category = searchParams.get('category') || 'total';
 
-    let leaderboard: any[] = [];
-
-    if (category === 'total') {
-      // Total weight leaderboard
-      const users = await prisma.user.findMany({
-        include: {
-          catches: {
-            select: { weight: true },
-          },
-          _count: {
-            select: {
-              catches: true,
-            },
-          },
-        },
-      });
-
-      leaderboard = await Promise.all(
-        users.map(async (user) => {
-          let followersCount = 0;
-          try {
-            // @ts-ignore - Follow model may not exist in every environment
-            followersCount = (await prisma.follow?.count({ where: { followingId: user.id } })) || 0;
-          } catch (error) {
-            followersCount = 0;
-          }
-
-          const totalWeight = user.catches.reduce((sum, c) => sum + (c.weight || 0), 0);
-
-          return {
-            ...user,
-            totalWeight,
-            _count: {
-              ...user._count,
-              followers: followersCount,
-            },
-          };
-        })
-      );
-
-      leaderboard = leaderboard
-        .sort((a, b) => b.totalWeight - a.totalWeight)
-        .slice(0, 50);
-    } else if (category === 'species') {
-      // Most species caught
-      const users = await prisma.user.findMany({
-        include: {
-          catches: {
-            select: { species: true },
-          },
-        },
-      });
-
-      leaderboard = users
-        .map((user) => {
-          const uniqueSpecies = new Set(user.catches.map(c => c.species).filter(Boolean));
-          return {
-            ...user,
-            score: uniqueSpecies.size,
-          };
-        })
-        .sort((a, b) => b.score - a.score)
-        .slice(0, 50);
-    } else if (category === 'streak') {
-      // Placeholder for streak (would need proper implementation)
-      leaderboard = [];
-    } else if (category === 'following') {
-      // Following-only leaderboard (placeholder - needs current user)
-      leaderboard = [];
-    } else if (category === 'country') {
-      // By country
-      const country = searchParams.get('country');
-      if (country) {
-        const users = await prisma.user.findMany({
-          where: {
-            country: country,
-          },
-          include: {
-            catches: {
-              select: { weight: true },
-            },
-          },
-        });
-
-        leaderboard = users
-          .map((user) => ({
-            ...user,
-            score: user.catches.reduce((sum, c) => sum + (c.weight || 0), 0).toFixed(1),
-          }))
-          .sort((a, b) => parseFloat(b.score) - parseFloat(a.score))
-          .slice(0, 50);
-      } else {
-        leaderboard = [];
-      }
+    if (category === 'streak' || category === 'following') {
+      return NextResponse.json([]);
     }
 
-    return NextResponse.json(leaderboard);
+    if (category === 'species') {
+      const rows = await prisma.$queryRaw<
+        Array<{
+          id: string;
+          firstName: string | null;
+          username: string | null;
+          photoUrl: string | null;
+          isPro: boolean;
+          country: string | null;
+          score: number;
+          catchCount: number;
+        }>
+      >(Prisma.sql`
+        SELECT
+          u.id,
+          u."firstName",
+          u.username,
+          u."photoUrl",
+          u."isPro",
+          u.country,
+          COUNT(DISTINCT c.species)::int AS score,
+          COUNT(c.id)::int AS "catchCount"
+        FROM "User" u
+        INNER JOIN "Catch" c ON c."userId" = u.id
+        WHERE c.species IS NOT NULL AND c.species <> ''
+        GROUP BY u.id
+        ORDER BY score DESC
+        LIMIT 50
+      `);
+
+      return NextResponse.json(await attachFollowerCounts(rows));
+    }
+
+    if (category === 'country') {
+      const country = searchParams.get('country');
+      if (!country) {
+        return NextResponse.json([]);
+      }
+
+      const rows = await prisma.$queryRaw<
+        Array<{
+          id: string;
+          firstName: string | null;
+          username: string | null;
+          photoUrl: string | null;
+          isPro: boolean;
+          country: string | null;
+          totalWeight: number;
+          catchCount: number;
+        }>
+      >(Prisma.sql`
+        SELECT
+          u.id,
+          u."firstName",
+          u.username,
+          u."photoUrl",
+          u."isPro",
+          u.country,
+          COALESCE(SUM(c.weight), 0)::float AS "totalWeight",
+          COUNT(c.id)::int AS "catchCount"
+        FROM "User" u
+        LEFT JOIN "Catch" c ON c."userId" = u.id
+        WHERE u.country = ${country}
+        GROUP BY u.id
+        ORDER BY "totalWeight" DESC
+        LIMIT 50
+      `);
+
+      return NextResponse.json(
+        await attachFollowerCounts(
+          rows.map((row) => ({
+            ...row,
+            score: Number(row.totalWeight || 0).toFixed(1),
+          })),
+        ),
+      );
+    }
+
+    // Default: total weight
+    const rows = await prisma.$queryRaw<
+      Array<{
+        id: string;
+        firstName: string | null;
+        username: string | null;
+        photoUrl: string | null;
+        isPro: boolean;
+        country: string | null;
+        totalWeight: number;
+        catchCount: number;
+      }>
+    >(Prisma.sql`
+      SELECT
+        u.id,
+        u."firstName",
+        u.username,
+        u."photoUrl",
+        u."isPro",
+        u.country,
+        COALESCE(SUM(c.weight), 0)::float AS "totalWeight",
+        COUNT(c.id)::int AS "catchCount"
+      FROM "User" u
+      LEFT JOIN "Catch" c ON c."userId" = u.id
+      GROUP BY u.id
+      HAVING COALESCE(SUM(c.weight), 0) > 0
+      ORDER BY "totalWeight" DESC
+      LIMIT 50
+    `);
+
+    return NextResponse.json(
+      await attachFollowerCounts(
+        rows.map((row) => ({
+          ...row,
+          score: Number(row.totalWeight || 0).toFixed(1),
+          totalWeight: Number(row.totalWeight || 0),
+        })),
+      ),
+    );
   } catch (error) {
     console.error('Leaderboard error:', error);
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
 }
-

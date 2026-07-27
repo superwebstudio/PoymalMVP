@@ -2,14 +2,14 @@
 
 import React, { useEffect, useState, useRef } from 'react';
 import { BottomNav } from '@/components/BottomNav';
-import { Globe, Info, User as UserIcon, Trash2, AlertTriangle, Bug, Bookmark, Heart, X, Image as ImageIcon, Bell, LogOut, MessageCircle } from 'lucide-react';
+import { Globe, Info, User as UserIcon, Trash2, AlertTriangle, Bug, Bookmark, Heart, X, Image as ImageIcon, Bell, LogOut, MessageCircle, Camera, AtSign, Download } from 'lucide-react';
 import { LanguageToggle } from '@/components/LanguageToggle';
 import { useI18n } from '@/lib/useI18n';
 import { TelegramBackButton } from '@/components/TelegramBackButton';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { SwipeablePage } from '@/components/SwipeablePage';
-import ProfilePageClient from '@/app/profile/page.client';
+import dynamic from 'next/dynamic';
 import { useUserStore } from '@/stores/useUserStore';
 import { useLanguageStore } from '@/stores/useLanguageStore';
 import { usePreferencesStore } from '@/stores/usePreferencesStore';
@@ -19,11 +19,17 @@ import { ALL_COUNTRIES } from '@/data/countries';
 import { motion, useScroll, useMotionValueEvent } from 'framer-motion';
 import { useImageCompression } from '@/hooks/useImageCompression';
 import { useNotificationStore } from '@/stores/useNotificationStore';
+import { CachedImage } from '@/components/CachedImage';
+
+const ProfilePageClient = dynamic(
+  () => import('@/app/profile/page.client'),
+  { ssr: false, loading: () => null },
+);
 
 export default function SettingsPage() {
   const { dict, mounted, lang } = useI18n();
   const router = useRouter();
-  const { userId, clearUser, currentUser } = useUserStore();
+  const { userId, clearUser, currentUser, setCurrentUser, fetchUser } = useUserStore();
   const { selectedLanguage } = useLanguageStore();
   const { addNotification } = useNotificationStore();
   const preferences = usePreferencesStore((state) => state.preferences);
@@ -49,25 +55,35 @@ export default function SettingsPage() {
   const { compressImage } = useImageCompression();
   const [bottomNavVisible, setBottomNavVisible] = useState(true);
   const lastScrollY = useRef(0);
+  const bottomNavVisibleRef = useRef(true);
   const { scrollY } = useScroll();
+  const [usernameDraft, setUsernameDraft] = useState(currentUser?.username || '');
+  const [savingProfile, setSavingProfile] = useState(false);
+  const [uploadingPhoto, setUploadingPhoto] = useState(false);
+  const avatarInputRef = useRef<HTMLInputElement>(null);
 
-  // Hide/show bottom nav on scroll - MUST be called before any conditional returns
+  useEffect(() => {
+    setUsernameDraft(currentUser?.username || '');
+  }, [currentUser?.username]);
+
+  // Hide/show bottom nav on scroll - only update state when visibility actually changes
   useMotionValueEvent(scrollY, "change", (latest) => {
     const current = latest;
     const previous = lastScrollY.current;
+    let nextVisible = bottomNavVisibleRef.current;
 
     if (current > previous && current > 100) {
-      // Scrolling down
-      setBottomNavVisible(false);
+      nextVisible = false;
     } else if (current < previous) {
-      // Scrolling up
-      setBottomNavVisible(true);
+      nextVisible = true;
     }
 
     lastScrollY.current = current;
+    if (nextVisible !== bottomNavVisibleRef.current) {
+      bottomNavVisibleRef.current = nextVisible;
+      setBottomNavVisible(nextVisible);
+    }
   });
-
-  if (!mounted) return null;
 
   if (!userId) {
     return (
@@ -89,6 +105,88 @@ export default function SettingsPage() {
     });
     clearUser();
     router.replace('/login');
+  };
+
+  const handleSaveUsername = async (): Promise<void> => {
+    if (!userId) return;
+    setSavingProfile(true);
+    try {
+      const response = await fetch('/api/user/profile', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ username: usernameDraft }),
+      });
+      const data = (await response.json()) as { error?: string; user?: typeof currentUser };
+      if (!response.ok || !data.user) {
+        addNotification({
+          message: data.error || 'Unable to update username',
+          type: 'error',
+        });
+        return;
+      }
+      if (currentUser) {
+        setCurrentUser({ ...currentUser, username: data.user.username });
+      }
+      await fetchUser(userId);
+      addNotification({ message: 'Username updated', type: 'success' });
+    } catch {
+      addNotification({ message: 'Unable to update username', type: 'error' });
+    } finally {
+      setSavingProfile(false);
+    }
+  };
+
+  const handleAvatarChange = async (
+    event: React.ChangeEvent<HTMLInputElement>,
+  ): Promise<void> => {
+    const file = event.target.files?.[0];
+    event.target.value = '';
+    if (!file || !userId) return;
+
+    setUploadingPhoto(true);
+    try {
+      const compressed = await compressImage(file);
+      const avatarFile = new File([compressed], 'avatar.jpg', { type: 'image/jpeg' });
+      const formData = new FormData();
+      formData.append('file', avatarFile);
+      formData.append('folder', 'avatars');
+
+      const uploadResponse = await fetch('/api/upload-supabase', {
+        method: 'POST',
+        credentials: 'include',
+        body: formData,
+      });
+      const uploadData = (await uploadResponse.json()) as { url?: string; error?: string };
+      if (!uploadResponse.ok || !uploadData.url) {
+        throw new Error(uploadData.error || 'Upload failed');
+      }
+
+      const response = await fetch('/api/user/profile', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ photoUrl: uploadData.url }),
+      });
+      const data = (await response.json()) as { error?: string; user?: typeof currentUser };
+      if (!response.ok || !data.user) {
+        throw new Error(data.error || 'Unable to update photo');
+      }
+
+      if (currentUser) {
+        setCurrentUser({ ...currentUser, photoUrl: data.user.photoUrl });
+      }
+      await fetchUser(userId);
+      addNotification({ message: 'Profile photo updated', type: 'success' });
+    } catch (error) {
+      console.error('Avatar upload error:', error);
+      addNotification({
+        message: error instanceof Error ? error.message : 'Unable to update photo',
+        type: 'error',
+      });
+    } finally {
+      setUploadingPhoto(false);
+    }
   };
 
   const handleDeleteAccount = async () => {
@@ -227,10 +325,102 @@ export default function SettingsPage() {
       </header>
 
       <div className="p-4 space-y-6">
+        {/* Profile Section */}
+        <div className="space-y-2">
+          <h3 className="text-sm font-semibold text-zinc-500 uppercase tracking-wide px-2">
+            Profile
+          </h3>
+          <div className="rounded-lg border border-zinc-800 bg-zinc-900 p-4 space-y-4">
+            <div className="flex items-center gap-4">
+              <button
+                type="button"
+                onClick={() => avatarInputRef.current?.click()}
+                disabled={uploadingPhoto}
+                className="relative h-20 w-20 shrink-0 overflow-hidden rounded-full border-2 border-zinc-700 bg-zinc-800"
+                aria-label="Change profile photo"
+              >
+                {currentUser?.photoUrl ? (
+                  <CachedImage
+                    src={currentUser.photoUrl}
+                    alt="Profile"
+                    className="h-full w-full object-cover"
+                  />
+                ) : (
+                  <div className="flex h-full w-full items-center justify-center text-2xl text-zinc-500">
+                    {(currentUser?.firstName || currentUser?.username || '?')[0]?.toUpperCase()}
+                  </div>
+                )}
+                <span className="absolute inset-x-0 bottom-0 flex items-center justify-center bg-black/55 py-1 text-white">
+                  <Camera size={14} />
+                </span>
+              </button>
+              <div className="min-w-0 flex-1">
+                <p className="font-semibold text-zinc-100 truncate">
+                  {currentUser?.firstName || currentUser?.username || 'Angler'}
+                </p>
+                <p className="text-sm text-zinc-500">
+                  {uploadingPhoto ? 'Uploading photo…' : 'Tap photo to change'}
+                </p>
+              </div>
+              <input
+                ref={avatarInputRef}
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={handleAvatarChange}
+              />
+            </div>
+
+            <div>
+              <label htmlFor="settings-username" className="mb-2 block text-sm text-zinc-300">
+                Username
+              </label>
+              <div className="relative">
+                <AtSign
+                  size={16}
+                  className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500"
+                />
+                <input
+                  id="settings-username"
+                  type="text"
+                  value={usernameDraft}
+                  onChange={(e) =>
+                    setUsernameDraft(
+                      e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, '').slice(0, 20),
+                    )
+                  }
+                  minLength={3}
+                  maxLength={20}
+                  className="w-full rounded-xl border border-zinc-700 bg-zinc-950 py-2.5 pl-9 pr-3 text-white outline-none focus:border-sky-500"
+                  placeholder="your_username"
+                />
+              </div>
+              <button
+                type="button"
+                onClick={handleSaveUsername}
+                disabled={
+                  savingProfile ||
+                  usernameDraft.length < 3 ||
+                  usernameDraft === (currentUser?.username || '')
+                }
+                className="mt-3 w-full rounded-xl bg-sky-600 py-2.5 font-semibold text-white hover:bg-sky-500 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                {savingProfile ? 'Saving…' : 'Save username'}
+              </button>
+            </div>
+          </div>
+        </div>
+
         {/* Account Section */}
         <div className="space-y-2">
           <h3 className="text-sm font-semibold text-zinc-500 uppercase tracking-wide px-2">{dict.account}</h3>
 
+          <Link href="/notifications" className="flex items-center justify-between bg-zinc-900 border border-zinc-800 rounded-lg p-4 hover:border-zinc-700 transition-colors">
+            <div className="flex items-center gap-3">
+              <Bell className="text-zinc-400" size={20} />
+              <span className="text-zinc-200">{dict.notifications || 'Notifications'}</span>
+            </div>
+          </Link>
           {currentUser?.isPro ? (
             <Link href="/membership" className="flex items-center justify-between bg-zinc-900 border border-amber-500/30 rounded-lg p-4 hover:border-amber-500/50 transition-colors">
               <div className="flex items-center gap-3">
@@ -248,6 +438,28 @@ export default function SettingsPage() {
                 <div>
                   <div className="text-zinc-200 font-semibold">{dict.upgradeToPro}</div>
                   <div className="text-xs text-zinc-400">{dict.unlimitedAiAdFree}</div>
+                </div>
+              </div>
+            </Link>
+          )}
+
+          {currentUser?.isPro ? (
+            <div className="flex items-center justify-between bg-zinc-900 border border-zinc-800 rounded-lg p-4">
+              <div className="flex items-center gap-3">
+                <Download className="text-zinc-400" size={20} />
+                <div>
+                  <div className="text-zinc-200 font-semibold">Export catches</div>
+                  <div className="text-xs text-zinc-400">GPX / CSV export coming soon</div>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <Link href="/pro" className="flex items-center justify-between bg-zinc-900 border border-zinc-800 rounded-lg p-4 hover:border-zinc-700 transition-colors">
+              <div className="flex items-center gap-3">
+                <Download className="text-zinc-400" size={20} />
+                <div>
+                  <div className="text-zinc-200 font-semibold">Export catches</div>
+                  <div className="text-xs text-zinc-400">PRO unlocks GPX / CSV export</div>
                 </div>
               </div>
             </Link>

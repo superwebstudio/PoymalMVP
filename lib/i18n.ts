@@ -143,6 +143,15 @@ export const i18n = {
 
         // Search
         searchUsers: "Поиск пользователей",
+        searchPeople: "Люди",
+        searchCatches: "Уловы",
+        searchBaits: "Прикормки",
+        searchAll: "Все",
+        searchPlaceholder: "Искать людей, уловы, прикормки...",
+        searchPeopleLogin: "Войдите, чтобы искать рыбаков",
+        noFollowers: "Пока нет подписчиков",
+        noFollowing: "Пока ни на кого не подписаны",
+        loadMore: "Ещё",
         noResults: "Нет результатов",
 
         // Messages
@@ -747,6 +756,15 @@ export const i18n = {
 
         // Search
         searchUsers: "Search Users",
+        searchPeople: "People",
+        searchCatches: "Catches",
+        searchBaits: "Bait mixes",
+        searchAll: "All",
+        searchPlaceholder: "Search people, catches, bait mixes...",
+        searchPeopleLogin: "Sign in to search anglers",
+        noFollowers: "No followers yet",
+        noFollowing: "Not following anyone yet",
+        loadMore: "Load more",
         noResults: "No results",
 
         // Messages

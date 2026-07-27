@@ -13,7 +13,7 @@ import { getCountryFlag } from '@/types';
 import { TelegramBackButton } from '@/components/TelegramBackButton';
 import { useUserStore } from '@/stores/useUserStore';
 import { usePreferencesStore } from '@/stores/usePreferencesStore';
-
+import { CachedImage } from '@/components/CachedImage';
 
 export default function UserProfilePage({ params }: { params: Promise<{ id: string }> }) {
     const { dict } = useI18n();
@@ -141,7 +141,12 @@ export default function UserProfilePage({ params }: { params: Promise<{ id: stri
                         <div className="relative">
                             <div className="w-20 h-20 rounded-full bg-zinc-800 overflow-hidden border-2 border-zinc-700">
                                 {user.photoUrl ? (
-                                    <img src={user.photoUrl} alt="Profile" className="w-full h-full object-cover" />
+                                    <CachedImage
+                                      src={user.photoUrl}
+                                      alt="Profile"
+                                      className="h-full w-full"
+                                      sizes="80px"
+                                    />
                                 ) : (
                                     <div className="w-full h-full flex items-center justify-center text-zinc-600 text-2xl">
                                         ?
@@ -179,14 +184,20 @@ export default function UserProfilePage({ params }: { params: Promise<{ id: stri
                             })()}
 
                             <div className="flex gap-4 mt-3 text-sm">
-                                <div>
+                                <Link
+                                    href={`/user/${user.id}/follows?type=followers`}
+                                    className="hover:opacity-80 transition-opacity"
+                                >
                                     <span className="font-bold text-zinc-100">{user._count.followers}</span>
                                     <span className="text-zinc-500 ml-1">{dict.followers}</span>
-                                </div>
-                                <div>
+                                </Link>
+                                <Link
+                                    href={`/user/${user.id}/follows?type=following`}
+                                    className="hover:opacity-80 transition-opacity"
+                                >
                                     <span className="font-bold text-zinc-100">{user._count.following}</span>
                                     <span className="text-zinc-500 ml-1">{dict.following}</span>
-                                </div>
+                                </Link>
                             </div>
                         </div>
                     </div>

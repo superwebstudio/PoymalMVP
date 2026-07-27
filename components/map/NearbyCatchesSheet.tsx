@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useI18n } from '@/lib/useI18n';
 import { useUserStore } from '@/stores/useUserStore';
 import { cn } from '@/lib/utils';
+import { CachedImage } from '@/components/CachedImage';
 
 interface Catch {
     id: string;
@@ -162,7 +163,7 @@ export function NearbyCatchesSheet({ catches, userLocation, onCatchClick, isOpen
                         animate={{ y: 0 }}
                         exit={{ y: '100%' }}
                         transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-                        className="fixed bottom-0 left-0 right-0 z-[110] bg-zinc-900/70 backdrop-blur-sm rounded-t-3xl max-h-[60vh] flex flex-col shadow-2xl"
+                        className="fixed bottom-0 left-0 right-0 z-[140] bg-zinc-900/70 backdrop-blur-sm rounded-t-3xl max-h-[60vh] flex flex-col shadow-2xl"
                     >
 
 
@@ -249,7 +250,12 @@ export function NearbyCatchesSheet({ catches, userLocation, onCatchClick, isOpen
                                         >
                                             <div className="w-12 h-12 rounded-lg bg-zinc-700 flex-shrink-0 overflow-hidden">
                                                 {catchItem.imageUrl ? (
-                                                    <img src={catchItem.imageUrl} alt={catchItem.species} className="w-full h-full object-cover" />
+                                                    <CachedImage
+                                                      src={catchItem.imageUrl}
+                                                      alt={catchItem.species || 'Catch'}
+                                                      className="h-full w-full"
+                                                      sizes="48px"
+                                                    />
                                                 ) : (
                                                     <div className="w-full h-full flex items-center justify-center">
                                                         <Fish size={20} className="text-zinc-500" />

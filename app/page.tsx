@@ -1,24 +1,39 @@
+import { Suspense } from 'react';
+import { unstable_cache } from 'next/cache';
 import { getFeed } from '@/app/api/feed/_service';
-import { getCurrentUser } from '@/lib/get-current-user';
+import { getCurrentUserSummary } from '@/lib/get-current-user-summary';
 import HomePageClient from './page.client';
 
-export const dynamic = 'force-dynamic';
+const getCachedPublicFeed = unstable_cache(
+  async () => getFeed(undefined, 'all'),
+  ['home-public-feed-v1'],
+  { revalidate: 60 },
+);
 
-// Server Component
-export default async function HomePage() {
-  // Fetch public feed on the server
-  // For the initial load, we fetch 'all' feed type
-  // Note: user-specific feed ('following') might need client-side hydration if userId isn't in cookies
-  const initialFeed = await getFeed(undefined, 'all');
+function HomeFallback(): React.JSX.Element {
+  return (
+    <div className="flex min-h-screen items-center justify-center bg-zinc-950 text-zinc-400">
+      Loading feed...
+    </div>
+  );
+}
 
-  // Try to get user if possible (e.g. from cookies if we implement them later)
-  // For now, this might return null or a fallback user in dev
-  const initialUser = await getCurrentUser();
+async function HomeContent(): Promise<React.JSX.Element> {
+  // Feed is cacheable; user is per-request (cookies). Keep them parallel.
+  const [initialFeed, initialUser] = await Promise.all([
+    getCachedPublicFeed(),
+    getCurrentUserSummary(),
+  ]);
 
   return (
-    <HomePageClient
-      initialFeed={initialFeed}
-      initialUser={initialUser}
-    />
+    <HomePageClient initialFeed={initialFeed} initialUser={initialUser} />
+  );
+}
+
+export default function HomePage(): React.JSX.Element {
+  return (
+    <Suspense fallback={<HomeFallback />}>
+      <HomeContent />
+    </Suspense>
   );
 }

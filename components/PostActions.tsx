@@ -59,12 +59,20 @@ export const PostActions: React.FC<PostActionsProps> = ({
   const handleLike = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
+    if (!userId) {
+      router.push(`/login?next=/catch/${catchId}`);
+      return;
+    }
     toggleLike();
   };
 
   const handleComment = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
+    if (!userId) {
+      router.push(`/login?next=/catch/${catchId}`);
+      return;
+    }
     if (onCommentClick) {
       onCommentClick();
     } else {
@@ -87,7 +95,10 @@ export const PostActions: React.FC<PostActionsProps> = ({
     e.preventDefault();
     e.stopPropagation();
 
-    if (!userId) return;
+    if (!userId) {
+      router.push(`/login?next=/catch/${catchId}`);
+      return;
+    }
 
     const previousSaved = saved;
     setSaved(!saved);

@@ -11,6 +11,7 @@ import { useNotificationStore } from '@/stores/useNotificationStore';
 import { cn } from '@/lib/utils';
 import { Sheet } from 'react-modal-sheet';
 import { Backdrop } from '@/components/ui/Backdrop';
+import { CachedImage } from '@/components/CachedImage';
 
 export function CatchDetailsSheet() {
     const { dict } = useI18n();
@@ -113,10 +114,11 @@ export function CatchDetailsSheet() {
                                 </div>
 
                                 {selectedCatch.imageUrl && !isMinimizedSheet && (
-                                    <img
+                                    <CachedImage
                                         src={selectedCatch.imageUrl}
                                         alt={selectedCatch.species || 'Catch'}
-                                        className="w-full h-48 object-cover rounded-lg mb-4"
+                                        className="mb-4 h-48 w-full rounded-lg"
+                                        sizes="(max-width: 768px) 100vw, 480px"
                                     />
                                 )}
 

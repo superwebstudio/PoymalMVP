@@ -41,7 +41,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 
     const { user, isNewUser } = await upsertAppUser(data.user, parsed.data.referralCode);
     const requestedRedirect = getSafeRedirect(parsed.data.next);
-    const redirectTo = isNewUser && requestedRedirect === '/' ? '/language-select' : requestedRedirect;
+    const redirectTo = isNewUser ? '/language-select' : requestedRedirect;
     const response = NextResponse.json({
       success: true,
       isNewUser,

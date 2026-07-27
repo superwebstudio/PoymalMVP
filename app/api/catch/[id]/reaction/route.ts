@@ -3,7 +3,7 @@ import prisma from '@/lib/prisma';
 import { verifyAuth } from '@/lib/auth';
 import { reactionSchema, validateBody, formatZodError } from '@/lib/validations';
 import { checkRateLimit, rateLimitResponse, REACTION_LIMIT, addRateLimitHeaders } from '@/lib/rate-limit';
-import { createCatchNotification } from '@/lib/create-notification';
+import { createCatchNotification, removeLikeNotification } from '@/lib/create-notification';
 
 (BigInt.prototype as any).toJSON = function () {
     return this.toString();
@@ -104,6 +104,11 @@ export async function POST(
                             catchId: id,
                         },
                     },
+                });
+
+                void removeLikeNotification({
+                    actorId: userId,
+                    catchId: id,
                 });
             } else {
                 // Update reaction with new emoji

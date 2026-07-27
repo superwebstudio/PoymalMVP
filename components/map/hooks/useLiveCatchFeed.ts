@@ -6,8 +6,9 @@ import type { MapCatch } from "@/components/map/hooks/useCatchMarkers";
 import { useLiveMapStore, type LiveCatchEvent } from "@/stores/useLiveMapStore";
 import { useUserStore } from "@/stores/useUserStore";
 
-const POLL_MS = 20_000;
+const POLL_MS = 45_000;
 const PULSE_MS = 2_800;
+const CLEANUP_MS = 2_500;
 const CLUSTER_KM = 1.5;
 const MIN_ZOOM = 8;
 
@@ -112,17 +113,18 @@ export function useLiveCatchFeed({
     if (!liveMode) return;
 
     const pulseTimer = window.setInterval(() => {
+      const state = useLiveMapStore.getState();
+      if (state.events.length === 0) return;
+
       clearExpiredPulses();
 
-      // Auto-dismiss toasts after ~5s
-      const state = useLiveMapStore.getState();
       const now = Date.now();
       state.events.forEach((event) => {
         if (event.toastVisible && now - event.createdAt > 5_000) {
           state.dismissToast(event.id);
         }
       });
-    }, 1000);
+    }, CLEANUP_MS);
 
     return () => window.clearInterval(pulseTimer);
   }, [liveMode, clearExpiredPulses]);

@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 
-type FeedType = 'all' | 'following';
+type FeedType = 'all' | 'news' | 'leaderboard';
 
 interface FeedStore {
   feed: any[];
@@ -40,13 +40,14 @@ export const useFeedStore = create<FeedStore>((set, get) => ({
       set({ isTransitioning: true });
     }
     try {
-      const feedResponse = await fetch(`/api/feed?type=${type}`, {
+      const feedQuery = type === 'all' ? 'all' : 'all';
+      const feedResponse = await fetch(`/api/feed?type=${feedQuery}`, {
         credentials: 'include',
       });
       const feedData: unknown = await feedResponse.json();
       set({
         feed: Array.isArray(feedData) ? feedData : [],
-        feedType: type,
+        feedType: type === 'news' || type === 'leaderboard' ? type : 'all',
         loading: false,
       });
     } catch (error) {

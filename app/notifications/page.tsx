@@ -7,6 +7,7 @@ import { TelegramBackButton } from '@/components/TelegramBackButton';
 import { useI18n } from '@/lib/useI18n';
 import { Bell, Heart, MessageCircle } from 'lucide-react';
 import { CachedImage } from '@/components/CachedImage';
+import { useUnreadNotificationsStore } from '@/stores/useUnreadNotificationsStore';
 
 type NotificationActor = {
   id: string;
@@ -27,6 +28,7 @@ type AppNotification = {
 
 export default function NotificationsPage() {
   const { dict } = useI18n();
+  const setUnreadCount = useUnreadNotificationsStore((s) => s.setUnreadCount);
   const [notifications, setNotifications] = useState<AppNotification[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -35,13 +37,19 @@ export default function NotificationsPage() {
       const response = await fetch('/api/notifications', { credentials: 'include' });
       if (!response.ok) return;
       const data = await response.json();
-      setNotifications(data.notifications || []);
+      const items = (data.notifications || []) as AppNotification[];
+      setNotifications(items);
+      setUnreadCount(
+        typeof data.unreadCount === 'number'
+          ? data.unreadCount
+          : items.filter((n) => !n.isRead).length,
+      );
     } catch (error) {
       console.error('Failed to load notifications:', error);
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [setUnreadCount]);
 
   useEffect(() => {
     fetchNotifications();
@@ -55,15 +63,17 @@ export default function NotificationsPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(notificationId ? { notificationId } : {}),
       });
-      setNotifications((prev) =>
-        prev.map((n) =>
+      setNotifications((prev) => {
+        const next = prev.map((n) =>
           notificationId
             ? n.id === notificationId
               ? { ...n, isRead: true }
               : n
-            : { ...n, isRead: true }
-        )
-      );
+            : { ...n, isRead: true },
+        );
+        setUnreadCount(next.filter((n) => !n.isRead).length);
+        return next;
+      });
     } catch (error) {
       console.error('Failed to mark notification as read:', error);
     }
@@ -110,56 +120,83 @@ export default function NotificationsPage() {
         ) : (
           <ul className="space-y-2">
             {notifications.map((notification) => {
-              const href = notification.catchId
+              const catchHref = notification.catchId
                 ? `/catch/${notification.catchId}`
                 : undefined;
-              const content = (
-                <div
-                  className={`flex items-start gap-3 rounded-xl border p-3 transition-colors ${
-                    notification.isRead
-                      ? 'border-zinc-800 bg-zinc-900/40'
-                      : 'border-zinc-700 bg-zinc-900'
-                  }`}
-                >
-                  <div className="mt-0.5 shrink-0">{renderIcon(notification.type)}</div>
-                  {notification.actor?.photoUrl ? (
-                    <CachedImage
-                      src={notification.actor.photoUrl}
-                      alt=""
-                      className="h-10 w-10 shrink-0 rounded-full object-cover"
-                    />
-                  ) : (
-                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-zinc-800 text-sm font-semibold text-zinc-300">
-                      {(notification.actor?.firstName ||
-                        notification.actor?.username ||
-                        '?')[0]?.toUpperCase()}
-                    </div>
-                  )}
-                  <div className="min-w-0 flex-1">
-                    <p className="text-sm text-zinc-200">{notification.content}</p>
-                    <p className="mt-1 text-xs text-zinc-500">
-                      {new Date(notification.createdAt).toLocaleString()}
-                    </p>
-                  </div>
+              const profileHref = notification.actor?.id
+                ? `/user/${notification.actor.id}`
+                : undefined;
+
+              const avatar = notification.actor?.photoUrl ? (
+                <CachedImage
+                  src={notification.actor.photoUrl}
+                  alt={
+                    notification.actor.firstName ||
+                    notification.actor.username ||
+                    'User'
+                  }
+                  className="h-10 w-10 shrink-0 rounded-full object-cover"
+                />
+              ) : (
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-zinc-800 text-sm font-semibold text-zinc-300">
+                  {(notification.actor?.firstName ||
+                    notification.actor?.username ||
+                    '?')[0]?.toUpperCase()}
                 </div>
               );
 
               return (
                 <li key={notification.id}>
-                  {href ? (
-                    <Link
-                      href={href}
-                      onClick={() => {
-                        if (!notification.isRead) {
-                          void markAsRead(notification.id);
-                        }
-                      }}
-                    >
-                      {content}
-                    </Link>
-                  ) : (
-                    content
-                  )}
+                  <div
+                    className={`flex items-start gap-3 rounded-xl border p-3 transition-colors ${
+                      notification.isRead
+                        ? 'border-zinc-800 bg-zinc-900/40'
+                        : 'border-zinc-700 bg-zinc-900'
+                    }`}
+                  >
+                    <div className="mt-0.5 shrink-0">{renderIcon(notification.type)}</div>
+
+                    {profileHref ? (
+                      <Link
+                        href={profileHref}
+                        className="shrink-0 rounded-full ring-offset-zinc-950 transition hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500"
+                        aria-label="View profile"
+                        onClick={() => {
+                          if (!notification.isRead) {
+                            void markAsRead(notification.id);
+                          }
+                        }}
+                      >
+                        {avatar}
+                      </Link>
+                    ) : (
+                      avatar
+                    )}
+
+                    {catchHref ? (
+                      <Link
+                        href={catchHref}
+                        className="min-w-0 flex-1"
+                        onClick={() => {
+                          if (!notification.isRead) {
+                            void markAsRead(notification.id);
+                          }
+                        }}
+                      >
+                        <p className="text-sm text-zinc-200">{notification.content}</p>
+                        <p className="mt-1 text-xs text-zinc-500">
+                          {new Date(notification.createdAt).toLocaleString()}
+                        </p>
+                      </Link>
+                    ) : (
+                      <div className="min-w-0 flex-1">
+                        <p className="text-sm text-zinc-200">{notification.content}</p>
+                        <p className="mt-1 text-xs text-zinc-500">
+                          {new Date(notification.createdAt).toLocaleString()}
+                        </p>
+                      </div>
+                    )}
+                  </div>
                 </li>
               );
             })}

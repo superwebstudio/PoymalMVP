@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useUserStore } from '@/stores/useUserStore';
 import { usePreferencesStore } from '@/stores/usePreferencesStore';
 import { useNotificationStore } from '@/stores/useNotificationStore';
+import { useUnreadNotificationsStore } from '@/stores/useUnreadNotificationsStore';
 
 type PolledNotification = {
   id: string;
@@ -15,23 +16,27 @@ type PolledNotification = {
   createdAt: string;
 };
 
-const POLL_MS = 15_000;
+const POLL_MS = 30_000;
 
 /**
- * Polls for unread like/comment notifications and shows top toasts.
+ * Single app-wide notification poller: updates badge count + toast for new items.
  */
 export function NotificationListener() {
   const router = useRouter();
   const { userId } = useUserStore();
   const notificationsEnabled = usePreferencesStore(
-    (s) => s.preferences.notificationsEnabled
+    (s) => s.preferences.notificationsEnabled,
   );
   const addNotification = useNotificationStore((s) => s.addNotification);
+  const setUnreadCount = useUnreadNotificationsStore((s) => s.setUnreadCount);
   const seenIdsRef = useRef<Set<string>>(new Set());
   const primedRef = useRef(false);
 
   useEffect(() => {
-    if (!userId || !notificationsEnabled) return;
+    if (!userId || !notificationsEnabled) {
+      setUnreadCount(0);
+      return;
+    }
 
     let cancelled = false;
 
@@ -45,6 +50,11 @@ export function NotificationListener() {
         const data = await response.json();
         const items: PolledNotification[] = data.notifications || [];
         const unread = items.filter((n) => !n.isRead);
+        setUnreadCount(
+          typeof data.unreadCount === 'number'
+            ? data.unreadCount
+            : unread.length,
+        );
 
         if (!primedRef.current) {
           unread.forEach((n) => seenIdsRef.current.add(n.id));
@@ -82,12 +92,19 @@ export function NotificationListener() {
       cancelled = true;
       window.clearInterval(intervalId);
     };
-  }, [userId, notificationsEnabled, addNotification, router]);
+  }, [
+    userId,
+    notificationsEnabled,
+    addNotification,
+    router,
+    setUnreadCount,
+  ]);
 
   useEffect(() => {
     primedRef.current = false;
     seenIdsRef.current = new Set();
-  }, [userId]);
+    setUnreadCount(0);
+  }, [userId, setUnreadCount]);
 
   return null;
 }

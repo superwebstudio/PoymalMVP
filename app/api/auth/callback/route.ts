@@ -35,7 +35,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     const referralCode = request.cookies.get(AUTH_REFERRAL_COOKIE)?.value ?? null;
     const { isNewUser } = await upsertAppUser(data.user, referralCode);
     const requestedRedirect = getSafeRedirect(request.cookies.get(AUTH_NEXT_COOKIE)?.value);
-    const redirectTo = isNewUser && requestedRedirect === '/' ? '/language-select' : requestedRedirect;
+    const redirectTo = isNewUser ? '/language-select' : requestedRedirect;
     const response = NextResponse.redirect(new URL(redirectTo, request.nextUrl.origin));
 
     setSessionCookies(response, data.session);

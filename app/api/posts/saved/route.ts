@@ -4,8 +4,9 @@ import { verifyAuth } from '@/lib/auth';
 
 export const dynamic = 'force-dynamic';
 
-// GET - Get user's saved posts
-export async function GET(request: NextRequest) {
+const LIST_LIMIT = 50;
+
+export async function GET(request: NextRequest): Promise<NextResponse> {
   try {
     const auth = await verifyAuth(request);
     if (!auth.success) {
@@ -15,9 +16,25 @@ export async function GET(request: NextRequest) {
 
     const savedPosts = await prisma.savedPost.findMany({
       where: { userId },
+      take: LIST_LIMIT,
       include: {
         catch: {
-          include: {
+          select: {
+            id: true,
+            userId: true,
+            imageUrl: true,
+            species: true,
+            scientificName: true,
+            description: true,
+            weight: true,
+            length: true,
+            location: true,
+            latitude: true,
+            longitude: true,
+            isPublic: true,
+            locationPrivate: true,
+            isTextOnly: true,
+            createdAt: true,
             user: {
               select: {
                 id: true,
@@ -28,14 +45,10 @@ export async function GET(request: NextRequest) {
                 country: true,
               },
             },
-            reactions: {
-              where: {
-                emoji: '❤️',
-              },
-            },
             _count: {
               select: {
                 comments: true,
+                reactions: true,
               },
             },
           },
@@ -64,7 +77,7 @@ export async function GET(request: NextRequest) {
         isTextOnly: sp.catch.isTextOnly,
         createdAt: sp.catch.createdAt,
         user: sp.catch.user,
-        likesCount: sp.catch.reactions?.length || 0, // Count heart reactions
+        likesCount: sp.catch._count.reactions,
         commentsCount: sp.catch._count.comments,
         savedAt: sp.createdAt,
       })),
@@ -74,4 +87,3 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
 }
-

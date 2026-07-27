@@ -1,7 +1,6 @@
 "use client";
 
 import { create } from "zustand";
-import { persist } from "zustand/middleware";
 import type { MapCatch } from "@/components/map/hooks/useCatchMarkers";
 
 export interface LiveCatchEvent {
@@ -26,55 +25,48 @@ interface LiveMapStore {
   clearExpiredPulses: () => void;
 }
 
-export const useLiveMapStore = create<LiveMapStore>()(
-  persist(
-    (set, get) => ({
-      liveMode: false,
-      events: [],
+export const useLiveMapStore = create<LiveMapStore>((set, get) => ({
+  // Session-only: do not persist liveMode (avoids surprise polling after reload)
+  liveMode: false,
+  events: [],
 
-      setLiveMode: (value) =>
-        set({
-          liveMode: value,
-          events: value ? get().events : [],
-        }),
-
-      toggleLiveMode: () => {
-        const next = !get().liveMode;
-        set({
-          liveMode: next,
-          events: next ? get().events : [],
-        });
-      },
-
-      addEvents: (events) =>
-        set((state) => ({
-          events: [...events, ...state.events].slice(0, 20),
-        })),
-
-      dismissToast: (eventId) =>
-        set((state) => ({
-          events: state.events.map((event) =>
-            event.id === eventId ? { ...event, toastVisible: false } : event
-          ),
-        })),
-
-      removeEvent: (eventId) =>
-        set((state) => ({
-          events: state.events.filter((event) => event.id !== eventId),
-        })),
-
-      clearExpiredPulses: () => {
-        const now = Date.now();
-        set((state) => ({
-          events: state.events.filter(
-            (event) => event.toastVisible || event.pulseUntil > now
-          ),
-        }));
-      },
+  setLiveMode: (value) =>
+    set({
+      liveMode: value,
+      events: value ? get().events : [],
     }),
-    {
-      name: "ulov-live-map",
-      partialize: (state) => ({ liveMode: state.liveMode }),
-    }
-  )
-);
+
+  toggleLiveMode: () => {
+    const next = !get().liveMode;
+    set({
+      liveMode: next,
+      events: next ? get().events : [],
+    });
+  },
+
+  addEvents: (events) =>
+    set((state) => ({
+      events: [...events, ...state.events].slice(0, 20),
+    })),
+
+  dismissToast: (eventId) =>
+    set((state) => ({
+      events: state.events.map((event) =>
+        event.id === eventId ? { ...event, toastVisible: false } : event
+      ),
+    })),
+
+  removeEvent: (eventId) =>
+    set((state) => ({
+      events: state.events.filter((event) => event.id !== eventId),
+    })),
+
+  clearExpiredPulses: () => {
+    const now = Date.now();
+    set((state) => ({
+      events: state.events.filter(
+        (event) => event.toastVisible || event.pulseUntil > now
+      ),
+    }));
+  },
+}));

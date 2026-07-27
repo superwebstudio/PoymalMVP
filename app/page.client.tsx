@@ -3,8 +3,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { AdBanner } from '@/components/AdBanner';
 import { BottomNav } from '@/components/BottomNav';
-import { Compass } from 'lucide-react';
-import Link from 'next/link';
 import { CommentModal } from '@/components/CommentModal';
 import { FeedPostCard } from '@/components/FeedPostCard';
 import { NewsContent } from '@/components/NewsContent';
@@ -17,38 +15,52 @@ import { useFeedStore } from '@/stores/useFeedStore';
 import { useUIStore } from '@/stores/useUIStore';
 
 interface HomePageClientProps {
-    initialFeed: any[];
-    initialUser: any;
+    initialFeed: unknown[];
+    initialUser: {
+        id: string;
+        isPro?: boolean;
+        _count?: { following?: number };
+    } | null;
 }
 
 export default function HomePageClient({ initialFeed, initialUser }: HomePageClientProps) {
     const { dict, mounted } = useI18n();
-    const { currentUser, followingCount, setCurrentUser, fetchUser } = useUserStore();
-    const { feed, feedType, isTransitioning, scrollPosition, setFeedType, fetchFeed, setFeed, setScrollPosition, pendingView, setPendingView } = useFeedStore();
+    const { currentUser, fetchUser } = useUserStore();
+    const {
+        feed,
+        feedType,
+        isTransitioning,
+        scrollPosition,
+        setFeedType,
+        fetchFeed,
+        setFeed,
+        setScrollPosition,
+        pendingView,
+        setPendingView,
+    } = useFeedStore();
     const { commentModalOpen, selectedPostForComment, openCommentModal, closeCommentModal } = useUIStore();
     const [currentView, setCurrentView] = useState<'feed' | 'news'>('feed');
 
-    // Hydrate stores with initial data
     const initializedRef = useRef(false);
 
     useEffect(() => {
         if (!initializedRef.current) {
             if (Array.isArray(initialFeed)) {
-                useFeedStore.setState({ feed: initialFeed, loading: false });
+                useFeedStore.setState({ feed: initialFeed, loading: false, feedType: 'all' });
             } else {
-                useFeedStore.setState({ feed: [], loading: false });
+                useFeedStore.setState({ feed: [], loading: false, feedType: 'all' });
             }
             if (initialUser) {
                 useUserStore.setState({
-                    currentUser: initialUser,
-                    followingCount: initialUser._count?.following || 0
+                    currentUser: initialUser as never,
+                    userId: initialUser.id,
+                    followingCount: initialUser._count?.following || 0,
                 });
             }
             initializedRef.current = true;
         }
     }, [initialFeed, initialUser]);
 
-    // Scroll logic for bottom nav and top tabs
     const { scrollY } = useScroll();
     const scrollYBounded = useMotionValue(0);
     const scrollYBoundedProgress = useTransform(scrollYBounded, [0, 100], [0, 1]);
@@ -68,32 +80,26 @@ export default function HomePageClient({ initialFeed, initialUser }: HomePageCli
         }
     });
 
-    const handleFeedTypeChange = (type: 'all' | 'following' | 'news' | 'leaderboard') => {
-        if (type === 'news') {
+    const handleFeedTypeChange = (type: 'all' | 'news' | 'leaderboard') => {
+        if (type === 'news' || type === 'leaderboard') {
             setCurrentView('news');
-        } else if (type === 'leaderboard') {
-            // Leaderboard is now part of news view, so switch to news
-            setCurrentView('news');
-        } else {
-            setCurrentView('feed');
-            setFeedType(type);
-            fetchFeed(type, true);
+            return;
         }
+        setCurrentView('feed');
+        setFeedType('all');
+        fetchFeed('all', true);
     };
 
     useEffect(() => {
-        // If we didn't get an initial user (e.g. fresh load), try to fetch if we have an ID
-        // We use a ref or check against the store state directly to avoid dependency loops
         const checkUser = async () => {
-            const { userId, currentUser } = useUserStore.getState();
-            if (userId && !currentUser) {
+            const { userId, currentUser: storedUser } = useUserStore.getState();
+            if (userId && !storedUser) {
                 await useUserStore.getState().fetchUser(userId);
             }
         };
 
-        checkUser();
+        void checkUser();
 
-        // Restore scroll position
         const restoreScroll = () => {
             if (scrollPosition > 0) {
                 window.scrollTo(0, scrollPosition);
@@ -103,31 +109,39 @@ export default function HomePageClient({ initialFeed, initialUser }: HomePageCli
         restoreScroll();
         setTimeout(restoreScroll, 100);
 
+        let rafId = 0;
+        let lastWritten = -1;
         const handleScroll = () => {
-            const scrollTop = window.scrollY || document.documentElement.scrollTop;
-            setScrollPosition(scrollTop);
+            if (rafId) return;
+            rafId = window.requestAnimationFrame(() => {
+                rafId = 0;
+                const scrollTop = window.scrollY || document.documentElement.scrollTop;
+                // Avoid Zustand writes for tiny scroll jitter
+                if (Math.abs(scrollTop - lastWritten) < 24) return;
+                lastWritten = scrollTop;
+                setScrollPosition(scrollTop);
+            });
         };
 
         window.addEventListener('scroll', handleScroll, { passive: true });
-        return () => window.removeEventListener('scroll', handleScroll);
+        return () => {
+            window.removeEventListener('scroll', handleScroll);
+            if (rafId) window.cancelAnimationFrame(rafId);
+        };
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []); // Empty dependency array to run only once on mount
+    }, []);
 
-    // Handle pending view from navigation (e.g., from menu on other pages)
     useEffect(() => {
         if (pendingView) {
             setCurrentView(pendingView);
-            setPendingView(null); // Clear after applying
+            setPendingView(null);
         }
     }, [pendingView, setPendingView]);
 
-
     const userIsPro = currentUser?.isPro ?? false;
-    const showFollowingEmpty = feedType === 'following' && followingCount === 0;
 
     return (
         <div className="flex flex-col min-h-screen bg-zinc-950 pb-[120px] text-zinc-100">
-            {/* Top Tabs with scroll-based hiding */}
             <FeedTabs
                 currentView={currentView}
                 feedType={feedType}
@@ -171,30 +185,6 @@ export default function HomePageClient({ initialFeed, initialUser }: HomePageCli
                                 className="w-12 h-12 border-4 border-sky-500 border-t-transparent rounded-full"
                             />
                         </motion.div>
-                    ) : showFollowingEmpty ? (
-                        <motion.div
-                            key="empty"
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            exit={{ opacity: 0, y: -20 }}
-                            className="flex flex-col items-center justify-center py-16 text-center"
-                        >
-                            <div className="p-4 bg-zinc-900 rounded-full mb-4">
-                                <Compass size={48} className="text-sky-400" />
-                            </div>
-                            <h3 className="text-xl font-bold text-zinc-200 mb-2">
-                                {mounted ? dict.noFollowingYet : "You're not following anyone yet"}
-                            </h3>
-                            <p className="text-zinc-500 mb-6 max-w-sm">
-                                {mounted ? dict.exploreToFindAnglers : "Explore to find anglers and see their catches in your feed"}
-                            </p>
-                            <button
-                                onClick={() => setCurrentView('news')}
-                                className="px-6 py-3 bg-sky-600 hover:bg-sky-500 text-white font-bold rounded-lg transition-colors"
-                            >
-                                {mounted ? dict.exploreNow : "Explore Now"}
-                            </button>
-                        </motion.div>
                     ) : (
                         <motion.div
                             key="feed"
@@ -203,42 +193,36 @@ export default function HomePageClient({ initialFeed, initialUser }: HomePageCli
                             exit={{ opacity: 0 }}
                             className="space-y-4 w-full"
                         >
-                            {Array.isArray(feed) && feed.map((item, index) => {
-                                return (
-                                    <motion.div
-                                        key={item.id}
-                                        initial={{ opacity: 0, y: 20 }}
-                                        animate={{ opacity: 1, y: 0 }}
-                                        transition={{ delay: index * 0.05 }}
-                                    >
-                                        <FeedPostCard
-                                            item={item}
-                                            currentUserId={currentUser?.id}
-                                            onDeleteSuccess={() => {
-                                                setFeed(feed.filter(f => f.id !== item.id));
-                                            }}
-                                            onCommentClick={() => {
-                                                openCommentModal(item);
-                                            }}
-                                        />
-                                    </motion.div>
-                                );
-                            })}
+                            {Array.isArray(feed) && feed.map((item) => (
+                                <div key={item.id}>
+                                    <FeedPostCard
+                                        item={item}
+                                        currentUserId={currentUser?.id}
+                                        onDeleteSuccess={() => {
+                                            setFeed(feed.filter((f) => f.id !== item.id));
+                                        }}
+                                        onCommentClick={() => {
+                                            if (!currentUser?.id) return;
+                                            openCommentModal(item);
+                                        }}
+                                    />
+                                </div>
+                            ))}
 
-                            {selectedPostForComment && (
+                            {selectedPostForComment && currentUser?.id && (
                                 <CommentModal
                                     isOpen={commentModalOpen}
                                     onClose={closeCommentModal}
                                     catchId={selectedPostForComment.id}
                                     postAuthor={selectedPostForComment.user}
-                                    currentUserId={currentUser?.id}
+                                    currentUserId={currentUser.id}
                                     onCommentAdded={() => {
-                                        fetchFeed(feedType);
+                                        fetchFeed('all');
                                     }}
                                 />
                             )}
 
-                            {feed.length === 0 && !showFollowingEmpty && (
+                            {feed.length === 0 && (
                                 <motion.div
                                     initial={{ opacity: 0 }}
                                     animate={{ opacity: 1 }}
@@ -254,7 +238,6 @@ export default function HomePageClient({ initialFeed, initialUser }: HomePageCli
 
             <AdBanner userIsPro={userIsPro} />
 
-            {/* Bottom Nav with scroll-based hiding */}
             <motion.div
                 style={{ y: bottomNavY }}
                 className="fixed bottom-0 left-0 right-0 z-50"
@@ -268,4 +251,3 @@ export default function HomePageClient({ initialFeed, initialUser }: HomePageCli
         </div>
     );
 }
-

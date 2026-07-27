@@ -1,15 +1,15 @@
 "use client";
 
 import React, { useState } from 'react';
-import { Globe, Users, Newspaper, Trophy, ChevronUp } from 'lucide-react';
+import { Globe, Newspaper, Trophy, ChevronUp } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useI18n } from '@/lib/useI18n';
 import { motion, AnimatePresence } from 'framer-motion';
 
 interface FloatingNavMenuProps {
-    feedType: 'all' | 'following' | 'news' | 'leaderboard';
+    feedType: 'all' | 'news' | 'leaderboard';
     currentView: 'feed' | 'news' | 'leaderboard';
-    onFeedTypeChange: (type: 'all' | 'following' | 'news' | 'leaderboard') => void;
+    onFeedTypeChange: (type: 'all' | 'news' | 'leaderboard') => void;
 }
 
 export const FloatingNavMenu: React.FC<FloatingNavMenuProps> = ({
@@ -20,7 +20,7 @@ export const FloatingNavMenu: React.FC<FloatingNavMenuProps> = ({
     const { dict, mounted } = useI18n();
     const [isExpanded, setIsExpanded] = useState(false);
 
-    const isActive = (type: 'all' | 'following' | 'news' | 'leaderboard') => {
+    const isActive = (type: 'all' | 'news' | 'leaderboard') => {
         if (type === 'news' || type === 'leaderboard') {
             return currentView === type;
         }
@@ -34,32 +34,26 @@ export const FloatingNavMenu: React.FC<FloatingNavMenuProps> = ({
             label: mounted ? dict.all : 'All'
         },
         {
-            type: 'following' as const,
-            icon: Users,
-            label: mounted ? dict.following : 'Following'
-        },
-        {
             type: 'news' as const,
             icon: Newspaper,
-            label: mounted ? (dict as any).news || 'News' : 'News'
+            label: mounted ? (dict as Record<string, string>).news || 'News' : 'News'
         },
         {
             type: 'leaderboard' as const,
             icon: Trophy,
-            label: mounted ? (dict as any).leaderboard || 'Leaderboard' : 'Leaderboard'
+            label: mounted ? (dict as Record<string, string>).leaderboard || 'Leaderboard' : 'Leaderboard'
         },
     ];
 
     const activeItem = menuItems.find(item => isActive(item.type)) || menuItems[0];
 
-    const handleItemClick = (type: 'all' | 'following' | 'news' | 'leaderboard') => {
+    const handleItemClick = (type: 'all' | 'news' | 'leaderboard') => {
         onFeedTypeChange(type);
         setIsExpanded(false);
     };
 
     return (
         <>
-            {/* Backdrop */}
             <AnimatePresence>
                 {isExpanded && (
                     <motion.div
@@ -73,7 +67,6 @@ export const FloatingNavMenu: React.FC<FloatingNavMenuProps> = ({
                 )}
             </AnimatePresence>
 
-            {/* Floating Button and Menu */}
             <div className="fixed bottom-24 right-6 z-[50] flex flex-col items-end">
                 <AnimatePresence>
                     {isExpanded && (
@@ -89,7 +82,6 @@ export const FloatingNavMenu: React.FC<FloatingNavMenuProps> = ({
                             className="bg-zinc-900/90 backdrop-blur-2xl rounded-[28px] border border-zinc-800/60 p-4 mb-5 shadow-2xl"
                             onClick={(e) => e.stopPropagation()}
                         >
-                            {/* Menu Items */}
                             <div className="space-y-3">
                                 {menuItems.map((item, index) => {
                                     const active = isActive(item.type);
@@ -132,7 +124,6 @@ export const FloatingNavMenu: React.FC<FloatingNavMenuProps> = ({
                     )}
                 </AnimatePresence>
 
-                {/* Floating Action Button */}
                 <motion.button
                     onClick={() => setIsExpanded(!isExpanded)}
                     whileHover={{ scale: 1.05 }}

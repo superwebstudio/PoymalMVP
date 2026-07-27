@@ -6,6 +6,7 @@ import { Sheet } from "react-modal-sheet";
 import { ChevronUp, Fish, X } from "lucide-react";
 import { useI18n } from "@/lib/useI18n";
 import type { MapCatch } from "@/components/map/hooks/useCatchMarkers";
+import { CachedImage } from "@/components/CachedImage";
 
 interface MyCatchesSheetProps {
   isOpen: boolean;
@@ -176,11 +177,11 @@ export function MyCatchesSheet({
                   >
                     <div className="h-12 w-12 flex-shrink-0 overflow-hidden rounded-lg bg-zinc-700">
                       {catchItem.imageUrl ? (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img
+                        <CachedImage
                           src={catchItem.imageUrl}
                           alt={catchItem.species || "Catch"}
-                          className="h-full w-full object-cover"
+                          className="h-full w-full"
+                          sizes="48px"
                         />
                       ) : (
                         <div className="flex h-full w-full items-center justify-center text-lg">

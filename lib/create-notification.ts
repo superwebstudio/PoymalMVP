@@ -7,9 +7,10 @@ export async function createCatchNotification(params: {
   actorId: string;
   catchId: string;
   type: CatchNotificationType;
+  commentId?: string;
   commentPreview?: string;
 }): Promise<void> {
-  const { recipientId, actorId, catchId, type, commentPreview } = params;
+  const { recipientId, actorId, catchId, type, commentId, commentPreview } = params;
 
   if (recipientId === actorId) return;
 
@@ -52,7 +53,58 @@ export async function createCatchNotification(params: {
       type,
       actorId,
       catchId,
+      commentId: type === 'comment' ? commentId ?? null : null,
       content,
     },
   });
+}
+
+export async function removeLikeNotification(params: {
+  actorId: string;
+  catchId: string;
+}): Promise<void> {
+  const { actorId, catchId } = params;
+
+  await prisma.notification.deleteMany({
+    where: {
+      type: 'like',
+      actorId,
+      catchId,
+    },
+  });
+}
+
+export async function removeCommentNotification(params: {
+  actorId: string;
+  catchId: string;
+  commentId: string;
+}): Promise<void> {
+  const { actorId, catchId, commentId } = params;
+
+  const deleted = await prisma.notification.deleteMany({
+    where: {
+      type: 'comment',
+      commentId,
+    },
+  });
+
+  // Fallback for older notifications created before commentId existed
+  if (deleted.count === 0) {
+    const remainingComments = await prisma.comment.count({
+      where: {
+        catchId,
+        userId: actorId,
+      },
+    });
+
+    if (remainingComments === 0) {
+      await prisma.notification.deleteMany({
+        where: {
+          type: 'comment',
+          actorId,
+          catchId,
+        },
+      });
+    }
+  }
 }

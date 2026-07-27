@@ -19,6 +19,8 @@ import { LocationSection } from '@/components/LogCatchPage/LocationSection';
 import { AdditionalDetails } from '@/components/LogCatchPage/AdditionalDetails';
 import { useSearchParams } from 'next/navigation';
 import { BaitMixForm } from '@/components/LogCatchPage/BaitMixForm';
+import { GuestAccountCTA } from '@/components/GuestAccountCTA';
+import { useUserStore } from '@/stores/useUserStore';
 
 const catchSchema = z.object({
   description: z.string().optional(),
@@ -31,6 +33,16 @@ const catchSchema = z.object({
 type CatchFormValues = z.infer<typeof catchSchema>;
 
 function LogCatchPageContent() {
+  const { userId } = useUserStore();
+
+  if (!userId) {
+    return <GuestAccountCTA variant="log" />;
+  }
+
+  return <LogCatchForm />;
+}
+
+function LogCatchForm() {
   const { dict, lang } = useI18n();
   const store = useLogStore();
   const searchParams = useSearchParams();
