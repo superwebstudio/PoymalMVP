@@ -36,6 +36,8 @@ export const i18n = {
         edit: "Редактировать",
         delete: "Удалить",
         share: "Поделиться",
+        linkCopied: "Ссылка скопирована!",
+        shareFailed: "Не удалось поделиться",
         search: "Поиск",
         postComment: "Отправить",
 
@@ -649,6 +651,8 @@ export const i18n = {
         edit: "Edit",
         delete: "Delete",
         share: "Share",
+        linkCopied: "Link copied!",
+        shareFailed: "Unable to share",
         search: "Search",
         postComment: "Post",
         // Stats
@@ -797,7 +801,7 @@ export const i18n = {
 
         // Leaderboard categories
         mostSpecies: "Most Species",
-        longestStreak: "Longest Streak",
+        longestStreak: "By Length",
         followingOnly: "Following Only",
         byCountry: "By Country",
 

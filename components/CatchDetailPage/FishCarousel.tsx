@@ -3,24 +3,18 @@ import { FishCard } from './FishCard';
 
 interface FishCarouselProps {
     allCatches: any[];
-    activeShareId: string | null;
     handleShare: (id: string) => void;
-    handleSendMessage: () => void;
     setShowFishDetailsId: (id: string) => void;
     onImageClick: (url: string) => void;
-    shareMenuRef: React.RefObject<HTMLDivElement | null>;
     dict: any;
     description?: string;
 }
 
 export const FishCarousel: React.FC<FishCarouselProps> = ({
     allCatches,
-    activeShareId,
     handleShare,
-    handleSendMessage,
     setShowFishDetailsId,
     onImageClick,
-    shareMenuRef,
     dict,
     description,
 }) => {
@@ -44,7 +38,6 @@ export const FishCarousel: React.FC<FishCarouselProps> = ({
                 }}
             >
                 {allCatches.map((fish, index) => {
-                    // Ensure unique key - use ID if valid, otherwise use index with a prefix
                     const uniqueKey = fish?.id && fish.id.trim() !== ''
                         ? fish.id
                         : `fish-${index}-${fish?.createdAt || Date.now()}`;
@@ -53,12 +46,9 @@ export const FishCarousel: React.FC<FishCarouselProps> = ({
                         <FishCard
                             key={uniqueKey}
                             fish={fish}
-                            activeShareId={activeShareId}
                             handleShare={handleShare}
-                            handleSendMessage={handleSendMessage}
                             setShowFishDetailsId={setShowFishDetailsId}
                             onImageClick={onImageClick}
-                            shareMenuRef={shareMenuRef}
                             dict={dict}
                             isFullWidth={hasSingleEntry}
                         />
@@ -74,4 +64,3 @@ export const FishCarousel: React.FC<FishCarouselProps> = ({
         </div>
     );
 };
-

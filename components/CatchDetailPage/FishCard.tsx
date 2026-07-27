@@ -1,36 +1,41 @@
 import React from 'react';
-import { Share2, MessageCircle, Fish, Anchor } from 'lucide-react';
+import { Share2, Fish, Anchor } from 'lucide-react';
 import { FaFish } from 'react-icons/fa';
 import { CachedImage } from '@/components/CachedImage';
+import { StarRating } from '@/components/StarRating';
 
 interface FishCardProps {
-    fish: any;
-    activeShareId: string | null;
+    fish: {
+        id: string;
+        species?: string | null;
+        scientificName?: string | null;
+        imageUrl?: string | null;
+        weight?: number | null;
+        length?: number | null;
+        bait?: string | null;
+        method?: string | null;
+        rating?: number | null;
+    };
     handleShare: (id: string) => void;
-    handleSendMessage: () => void;
     setShowFishDetailsId: (id: string) => void;
     onImageClick: (url: string) => void;
-    shareMenuRef: React.RefObject<HTMLDivElement | null>;
-    dict: any;
+    dict: Record<string, string>;
     isFullWidth?: boolean;
 }
 
 export const FishCard: React.FC<FishCardProps> = ({
     fish,
-    activeShareId,
     handleShare,
-    handleSendMessage,
     setShowFishDetailsId,
     onImageClick,
-    shareMenuRef,
     dict,
     isFullWidth = false,
 }) => {
     return (
         <div
             className={`relative bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden ${
-                isFullWidth 
-                    ? 'w-full' 
+                isFullWidth
+                    ? 'w-full'
                     : 'flex-shrink-0 w-[280px]'
             }`}
             style={isFullWidth ? {} : { scrollSnapAlign: 'start' }}
@@ -43,7 +48,7 @@ export const FishCard: React.FC<FishCardProps> = ({
                         className="h-full w-full"
                         sizes={isFullWidth ? '(max-width: 768px) 100vw, 640px' : '280px'}
                         priority={isFullWidth}
-                        onClick={() => onImageClick(fish.imageUrl)}
+                        onClick={() => onImageClick(fish.imageUrl!)}
                     />
                 </div>
             ) : (
@@ -71,6 +76,13 @@ export const FishCard: React.FC<FishCardProps> = ({
                     )}
                 </div>
 
+                {typeof fish.rating === 'number' && fish.rating > 0 && (
+                    <div className="mt-3">
+                        <span className="text-xs text-zinc-400 mr-2">{dict.rating || 'Rating'}:</span>
+                        <StarRating value={fish.rating} size={16} readOnly />
+                    </div>
+                )}
+
                 {(fish.bait || fish.method) && (
                     <div className="flex gap-4 mt-3 text-sm">
                         {fish.bait && (
@@ -90,29 +102,19 @@ export const FishCard: React.FC<FishCardProps> = ({
                     </div>
                 )}
             </div>
-            {/* Share Button on Card */}
             <div className="absolute top-2 right-2 z-10">
-                <div className="relative">
-                    <button
-                        onClick={(e) => {
-                            e.stopPropagation();
-                            handleShare(fish.id);
-                        }}
-                        className="bg-black/40 backdrop-blur-sm rounded-full p-2 text-white hover:bg-black/60 transition-colors"
-                    >
-                        <Share2 size={18} />
-                    </button>
-                    {activeShareId === fish.id && (
-                        <div ref={shareMenuRef} className="absolute right-0 top-full mt-2 w-64 bg-zinc-900 border border-zinc-800 rounded-lg shadow-xl overflow-hidden z-50">
-                            <button onClick={handleSendMessage} className="w-full flex items-center gap-3 px-4 py-3 hover:bg-zinc-800 text-zinc-300 transition-colors whitespace-nowrap">
-                                <MessageCircle size={18} />
-                                <span>Send as Message</span>
-                            </button>
-                        </div>
-                    )}
-                </div>
+                <button
+                    type="button"
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        handleShare(fish.id);
+                    }}
+                    className="bg-black/40 backdrop-blur-sm rounded-full p-2 text-white hover:bg-black/60 transition-colors"
+                    aria-label={dict.share || 'Share'}
+                >
+                    <Share2 size={18} />
+                </button>
             </div>
         </div>
     );
 };
-

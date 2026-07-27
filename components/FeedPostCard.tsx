@@ -359,6 +359,7 @@ export const FeedPostCard: React.FC<FeedPostCardProps> = ({
                   initialSaved={(item as any).isSaved}
                   viewCount={viewCount}
                   showViewCount={isOwnPost}
+                  species={item.species}
                 />
               </div>
             </div>
@@ -569,6 +570,7 @@ export const FeedPostCard: React.FC<FeedPostCardProps> = ({
                     initialSaved={(item as any).isSaved}
                     viewCount={viewCount}
                     showViewCount={isOwnPost}
+                    species={item.species}
                   />
                 </div>
               </div>

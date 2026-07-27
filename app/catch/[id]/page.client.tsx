@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useI18n } from '@/lib/useI18n';
 import { useUserStore } from '@/stores/useUserStore';
@@ -13,6 +13,8 @@ import { TelegramBackButton } from '@/components/TelegramBackButton';
 import { PostActionsHorizontal } from '@/components/PostActionsHorizontal';
 import { CommentModal } from '@/components/CommentModal';
 import { useNotificationStore } from '@/stores/useNotificationStore';
+
+import { shareCatch } from '@/lib/share';
 
 import { useComments } from '@/hooks/useComments';
 import { usePostStore } from '@/stores/usePostStore';
@@ -43,7 +45,6 @@ export default function CatchDetailPageClient({ catchId, initialCatchData, initi
 
     // Modal Store
     const {
-        activeShareId, setActiveShareId,
         showFishDetailsId, setShowFishDetailsId,
         fullscreenImageSrc, setFullscreenImageSrc,
         commentModalOpen, setCommentModalOpen,
@@ -70,83 +71,25 @@ export default function CatchDetailPageClient({ catchId, initialCatchData, initi
     }, [catchId, currentUserId]);
 
     const { comments, loadingComments, fetchComments } = useComments(catchId);
-    const shareMenuRef = useRef<HTMLDivElement>(null);
 
-    // Click outside share menu
-    useEffect(() => {
-        if (!activeShareId) return;
-        const handleClickOutside = (event: MouseEvent) => {
-            if (shareMenuRef.current && !shareMenuRef.current.contains(event.target as Node)) {
-                setActiveShareId(null);
-            }
-        };
-        document.addEventListener('mousedown', handleClickOutside);
-        return () => document.removeEventListener('mousedown', handleClickOutside);
-    }, [activeShareId, setActiveShareId]);
+    const handleShare = async (id: string): Promise<void> => {
+        const related = initialRelatedCatches.find((item: { id: string }) => item.id === id);
+        const fish = related || (catchData?.id === id ? catchData : catchData);
 
-    const handleShare = (id: string) => {
-        setActiveShareId(activeShareId === id ? null : id);
-    };
+        const result = await shareCatch({
+            catchId: id,
+            species: fish?.species ?? null,
+        });
 
-    const handleSendMessage = () => {
-        setActiveShareId(null);
-        if (!catchData) return;
-
-        const catchUrl = `${window.location.origin}/catch/${catchId}`;
-        const shareText = catchData.species
-            ? `Check out this ${catchData.species} catch! ${catchUrl}`
-            : `Check out this catch! ${catchUrl}`;
-
-        // Prioritize Telegram Mini App native share (opens contact picker in-app)
-        if (typeof window !== 'undefined' && window.Telegram?.WebApp) {
-            const tg = window.Telegram.WebApp;
-            // Use https://t.me/share/url format which works in Mini Apps
-            const telegramShareLink = `https://t.me/share/url?url=${encodeURIComponent(catchUrl)}&text=${encodeURIComponent(shareText)}`;
-
-            // Use openTelegramLink to open within Telegram without leaving Mini App
-            if ((tg as any).openTelegramLink) {
-                (tg as any).openTelegramLink(telegramShareLink);
-            } else if ((tg as any).openLink) {
-                // Fallback to openLink (also works in Mini App)
-                (tg as any).openLink(telegramShareLink);
-            } else {
-                // Last resort: open in same window
-                window.open(telegramShareLink, '_blank');
-            }
-        } else if (typeof navigator !== 'undefined' && navigator.share) {
-            // Use native Web Share API if available (works in-app without opening browser)
-            navigator.share({
-                title: catchData.species ? `${catchData.species} Catch` : 'Catch',
-                text: shareText,
-                url: catchUrl,
-            }).catch((error) => {
-                // User cancelled or error occurred, fallback to clipboard
-                if (error.name !== 'AbortError') {
-                    navigator.clipboard.writeText(shareText).then(() => {
-                        addNotification({
-                            message: 'Link copied to clipboard!',
-                            type: 'success',
-                        });
-                    }).catch(() => {
-                        addNotification({
-                            message: 'Failed to copy link',
-                            type: 'error',
-                        });
-                    });
-                }
+        if (result.method === 'clipboard') {
+            addNotification({
+                message: dict.linkCopied || 'Link copied!',
+                type: 'success',
             });
-        } else {
-            // Final fallback: copy to clipboard
-            navigator.clipboard.writeText(shareText).then(() => {
-                addNotification({
-                    message: 'Link copied to clipboard!',
-                    type: 'success',
-                });
-            }).catch(() => {
-                addNotification({
-                    message: 'Failed to copy link',
-                    type: 'error',
-                });
+        } else if (result.method === 'failed') {
+            addNotification({
+                message: dict.shareFailed || result.error,
+                type: 'error',
             });
         }
     };
@@ -222,12 +165,9 @@ export default function CatchDetailPageClient({ catchId, initialCatchData, initi
                         {(initialRelatedCatches.length > 0 || displayData.species || displayData.imageUrl) && (
                             <FishCarousel
                                 allCatches={derivedAllCatches}
-                                activeShareId={activeShareId}
                                 handleShare={handleShare}
-                                handleSendMessage={handleSendMessage}
                                 setShowFishDetailsId={setShowFishDetailsId}
                                 onImageClick={setFullscreenImageSrc}
-                                shareMenuRef={shareMenuRef}
                                 dict={dict}
                                 description={displayData.description}
                             />
@@ -252,6 +192,7 @@ export default function CatchDetailPageClient({ catchId, initialCatchData, initi
                 <PostActionsHorizontal
                     catchId={displayData.id}
                     onCommentClick={() => setCommentModalOpen(true)}
+                    species={displayData.species}
                 />
 
                 <CommentsList

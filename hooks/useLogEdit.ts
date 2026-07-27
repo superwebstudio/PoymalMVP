@@ -168,6 +168,7 @@ export function useLogEdit(catchId: string, dict: any) {
                         imageUrl,
                         bait: entry.bait || formData.bait || null,
                         method: entry.method || formData.method || null,
+                        rating: entry.rating ?? null,
                     };
                 })
             );
@@ -195,6 +196,7 @@ export function useLogEdit(catchId: string, dict: any) {
                     weight: fishEntries[0]?.weight ? parseFloat(fishEntries[0].weight) : null,
                     length: fishEntries[0]?.length ? parseFloat(fishEntries[0].length) : null,
                     imageUrl: fishEntries[0]?.imageUrl || null,
+                    rating: fishEntries[0]?.rating ?? null,
                 }),
             });
 

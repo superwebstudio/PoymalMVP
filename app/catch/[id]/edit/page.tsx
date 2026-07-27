@@ -149,6 +149,7 @@ export default function EditCatchPage({ params }: { params: Promise<{ id: string
                 imageData: c.imageUrl || null,
                 bait: c.bait || '',
                 method: c.method || '',
+                rating: typeof c.rating === 'number' ? c.rating : null,
               }));
 
             store.setFishEntries(fishEntries);
@@ -165,6 +166,7 @@ export default function EditCatchPage({ params }: { params: Promise<{ id: string
                 imageData: catchData.imageUrl || null,
                 bait: catchData.bait || '',
                 method: catchData.method || '',
+                rating: typeof catchData.rating === 'number' ? catchData.rating : null,
               }]);
             }
           }

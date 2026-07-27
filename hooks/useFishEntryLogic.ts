@@ -160,6 +160,7 @@ export function useFishEntryLogic(dict: any, lang: string) {
             imageFile: store.fishForm.imageFile,
             bait: store.fishForm.bait.trim(),
             method: store.fishForm.method.trim(),
+            rating: store.fishForm.rating,
         };
 
         store.setFishEntries(prev => {

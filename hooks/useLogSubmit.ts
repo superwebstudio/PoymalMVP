@@ -256,6 +256,7 @@ export function useLogSubmit(dict: any, options?: LogSubmitOptions) {
             imageUrl,
             bait: entry.bait || formData.bait || null,
             method: entry.method || formData.method || null,
+            rating: entry.rating ?? null,
           };
         })
       );

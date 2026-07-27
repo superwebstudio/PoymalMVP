@@ -503,13 +503,15 @@ export const BottomNav = ({
               stiffness: 400,
               mass: 0.8
             }}
-            className="fixed z-[50] bg-zinc-900/98 backdrop-blur-3xl rounded-[28px] p-4 shadow-2xl"
+            className="feed-home-menu fixed z-[50] bg-zinc-900/98 backdrop-blur-3xl rounded-[28px] p-4 shadow-2xl"
             onClick={(e) => e.stopPropagation()}
             style={{
-              left: '1.5rem',
+              // Align with phone-shell gutters (desktop) and nav padding (mobile)
+              left: 'calc(var(--app-gutter, 0px) + 1.5rem)',
               bottom: `calc(60px + max(2rem, calc(env(safe-area-inset-bottom) + 1rem)) + 0.75rem)`,
-              width: '260px',
-              transformOrigin: 'bottom left'
+              width: 'min(260px, calc(100vw - var(--app-gutter, 0px) * 2 - 3rem))',
+              maxWidth: 'calc(var(--app-max-width, 480px) - 3rem)',
+              transformOrigin: 'bottom left',
             }}
           >
             <div className="space-y-2">

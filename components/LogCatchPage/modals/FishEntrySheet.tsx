@@ -6,6 +6,7 @@ import { X, Camera, Fish } from 'lucide-react';
 import { useLogStore } from '@/stores/useLogStore';
 import { useFishEntryLogic } from '@/hooks/useFishEntryLogic';
 import { Backdrop } from '@/components/ui/Backdrop';
+import { StarRating } from '@/components/StarRating';
 
 interface FishEntrySheetProps {
     dict: any;
@@ -237,6 +238,22 @@ export const FishEntrySheet: React.FC<FishEntrySheetProps> = ({ dict, lang }) =>
                                         style={{ fontSize: '16px' }}
                                     />
                                 </div>
+                            </div>
+
+                            <div className="mb-3">
+                                <label className="text-xs text-zinc-400 ml-1 mb-2 block">
+                                    {dict.rating || 'Catch Rating'}
+                                </label>
+                                <StarRating
+                                    value={fishForm.rating}
+                                    onChange={(next) =>
+                                        store.setFishForm((prev) => ({
+                                            ...prev,
+                                            rating: next > 0 ? next : null,
+                                        }))
+                                    }
+                                    size={28}
+                                />
                             </div>
                         </div>
 

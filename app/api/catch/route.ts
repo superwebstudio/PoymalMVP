@@ -160,6 +160,7 @@ export async function POST(request: NextRequest) {
             waterTemp: validatedData.waterTemp ?? null,
             bait: validatedData.bait || null,
             method: validatedData.method || null,
+            rating: validatedData.rating ?? null,
             locationPrivate: validatedData.locationPrivate ?? false,
             postType,
         };
@@ -211,6 +212,7 @@ export async function POST(request: NextRequest) {
                             length: entry.length ?? null,
                             bait: entry.bait || sharedFields.bait,
                             method: entry.method || sharedFields.method,
+                            rating: entry.rating ?? null,
                             isTextOnly: false,
                         },
                         include: {

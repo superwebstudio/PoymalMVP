@@ -7,6 +7,8 @@ import { useUserStore } from "@/stores/useUserStore";
 import { useNotificationStore } from "@/stores/useNotificationStore";
 import { usePostActions } from "@/hooks/usePostActions";
 import { SavedPostsSheet } from "@/components/SavedPostsSheet";
+import { shareCatch } from "@/lib/share";
+import { useI18n } from "@/lib/useI18n";
 
 interface PostActionsProps {
   catchId: string;
@@ -14,6 +16,7 @@ interface PostActionsProps {
   initialSaved?: boolean;
   viewCount?: number;
   showViewCount?: boolean;
+  species?: string | null;
 }
 
 export const PostActions: React.FC<PostActionsProps> = ({
@@ -22,13 +25,14 @@ export const PostActions: React.FC<PostActionsProps> = ({
   initialSaved,
   viewCount = 0,
   showViewCount = false,
+  species = null,
 }) => {
   const router = useRouter();
+  const { dict } = useI18n();
   const { userId } = useUserStore();
   const { addNotification } = useNotificationStore();
   const { liked, likesCount, commentsCount, toggleLike } = usePostActions(catchId);
 
-  const [showShareMenu, setShowShareMenu] = useState(false);
   const [saved, setSaved] = useState(initialSaved || false);
   const [showSavedSheet, setShowSavedSheet] = useState(false);
   const [highlightedCatchId, setHighlightedCatchId] = useState<string | null>(null);
@@ -80,10 +84,22 @@ export const PostActions: React.FC<PostActionsProps> = ({
     }
   };
 
-  const handleShare = (e: React.MouseEvent) => {
+  const handleShare = async (e: React.MouseEvent): Promise<void> => {
     e.preventDefault();
     e.stopPropagation();
-    setShowShareMenu(!showShareMenu);
+
+    const result = await shareCatch({ catchId, species });
+    if (result.method === "clipboard") {
+      addNotification({
+        message: dict.linkCopied || "Link copied!",
+        type: "success",
+      });
+    } else if (result.method === "failed") {
+      addNotification({
+        message: dict.shareFailed || result.error,
+        type: "error",
+      });
+    }
   };
 
   const openSavedSheet = () => {
@@ -140,17 +156,6 @@ export const PostActions: React.FC<PostActionsProps> = ({
     }
   };
 
-  const handleSendMessage = () => {
-    setShowShareMenu(false);
-    const catchUrl = `${window.location.origin}/catch/${catchId}`;
-    navigator.clipboard.writeText(catchUrl).then(() => {
-      addNotification({
-        message: "Link copied to clipboard!",
-        type: "success",
-      });
-    });
-  };
-
   return (
     <div className="relative">
       <div className="flex flex-col items-center gap-3 rounded-full bg-black/40 px-2 py-3 backdrop-blur-md">
@@ -200,27 +205,14 @@ export const PostActions: React.FC<PostActionsProps> = ({
           <Bookmark size={20} className={saved ? "fill-yellow-400" : ""} />
         </button>
 
-        <div className="relative">
-          <button
-            type="button"
-            onClick={handleShare}
-            className="flex flex-col items-center gap-1 text-white/90 transition-colors hover:text-blue-400"
-          >
-            <Share2 size={20} />
-          </button>
-          {showShareMenu && (
-            <div className="absolute right-0 bottom-full z-50 mb-2 w-64 overflow-hidden rounded-lg border border-zinc-800 bg-zinc-900 shadow-xl">
-              <button
-                type="button"
-                onClick={handleSendMessage}
-                className="flex w-full items-center gap-3 whitespace-nowrap px-4 py-3 text-zinc-300 transition-colors hover:bg-zinc-800"
-              >
-                <MessageCircle size={18} />
-                <span>Send as Message</span>
-              </button>
-            </div>
-          )}
-        </div>
+        <button
+          type="button"
+          onClick={handleShare}
+          className="flex flex-col items-center gap-1 text-white/90 transition-colors hover:text-blue-400"
+          aria-label={dict.share || "Share"}
+        >
+          <Share2 size={20} />
+        </button>
       </div>
 
       <SavedPostsSheet

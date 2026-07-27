@@ -36,7 +36,6 @@ import { useLiveMapStore } from '@/stores/useLiveMapStore';
 import { useWeatherStore } from '@/stores/useWeatherStore';
 import { simulateLiveCatchActivity } from '@/lib/simulate-live-catches';
 import type { MapCatch } from '@/components/map/hooks/useCatchMarkers';
-import mapboxgl from 'mapbox-gl';
 
 interface MapPageClientProps {
     initialSavedLocations: any[];
@@ -232,51 +231,8 @@ export default function MapPageClient({ initialSavedLocations }: MapPageClientPr
         return cancel;
     }, [liveMode, map, mergeCatches, searchParams]);
 
-    // Fit map to My Catches only after the own-catch fetch finishes
-    const fittedMyCatchesKeyRef = useRef<string | null>(null);
-    useEffect(() => {
-        if (mode !== 'my-spots') {
-            fittedMyCatchesKeyRef.current = null;
-            return;
-        }
-        if (catchesLoading || !map.current || !userId) return;
-
-        const ownPoints = catches.filter(
-            (item) =>
-                item.user?.id === userId &&
-                item.latitude != null &&
-                item.longitude != null
-        );
-        if (ownPoints.length === 0) return;
-
-        const fitKey = ownPoints.map((item) => item.id).sort().join(',');
-        if (fittedMyCatchesKeyRef.current === fitKey) return;
-        fittedMyCatchesKeyRef.current = fitKey;
-
-        if (ownPoints.length === 1) {
-            map.current.flyTo({
-                center: [ownPoints[0].longitude, ownPoints[0].latitude],
-                zoom: 12,
-                duration: 1000,
-                essential: true,
-            });
-            return;
-        }
-
-        const bounds = new mapboxgl.LngLatBounds(
-            [ownPoints[0].longitude, ownPoints[0].latitude],
-            [ownPoints[0].longitude, ownPoints[0].latitude]
-        );
-        ownPoints.forEach((item) => {
-            bounds.extend([item.longitude, item.latitude]);
-        });
-
-        map.current.fitBounds(bounds, {
-            padding: 64,
-            maxZoom: 13,
-            duration: 1000,
-        });
-    }, [mode, catches, catchesLoading, map, userId]);
+    // My Catches: keep the current map viewport and drop markers in place
+    // (do not auto-fitBounds / fly away from where the user is looking)
 
     const handleModeChange = (nextMode: typeof mode) => {
         if (accessTier === 'guest' && nextMode === 'my-spots') {
@@ -284,7 +240,6 @@ export default function MapPageClient({ initialSavedLocations }: MapPageClientPr
         }
         setMode(nextMode);
         if (nextMode === 'my-spots') {
-            fittedMyCatchesKeyRef.current = null;
             setShowNearbySheet(false);
             setSelectedPlace(null);
             setSelectedSpecies(null);

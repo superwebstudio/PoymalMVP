@@ -94,6 +94,14 @@ export async function PATCH(
             waterTemp: body.waterTemp !== undefined ? (body.waterTemp ? parseFloat(body.waterTemp) : null) : undefined,
             bait: body.bait !== undefined ? body.bait : undefined,
             method: body.method !== undefined ? body.method : undefined,
+            rating: body.rating !== undefined
+                ? (body.rating === null || body.rating === ''
+                    ? null
+                    : (() => {
+                        const n = parseInt(String(body.rating), 10);
+                        return Number.isFinite(n) ? Math.min(5, Math.max(1, n)) : null;
+                    })())
+                : undefined,
             locationPrivate: body.locationPrivate !== undefined ? body.locationPrivate : undefined,
         };
 

@@ -82,6 +82,10 @@ export const createCatchSchema = z.object({
     .optional(),
   bait: safeString(200).nullable().optional(),
   method: safeString(200).nullable().optional(),
+  rating: z.union([z.number(), z.string().transform(Number)])
+    .pipe(z.number().int().min(1).max(5))
+    .nullable()
+    .optional(),
 
   // Content
   description: safeString(5000).nullable().optional(),
@@ -123,6 +127,10 @@ export const createCatchSchema = z.object({
     imageUrl: safeString(2000).nullable().optional(),
     bait: safeString(200).nullable().optional(),
     method: safeString(200).nullable().optional(),
+    rating: z.union([z.number(), z.string().transform(Number)])
+      .pipe(z.number().int().min(1).max(5))
+      .nullable()
+      .optional(),
   })).optional(),
 });
 

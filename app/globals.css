@@ -79,6 +79,14 @@ html.app-phone-shell .app-shell {
     right: calc(var(--app-gutter) + 1.5rem) !important;
   }
 
+  /* Home feed menu: fixed left offset must include shell gutter */
+  html.app-phone-shell .feed-home-menu {
+    left: calc(var(--app-gutter) + 1.5rem) !important;
+    right: auto !important;
+    width: min(260px, calc(var(--app-max-width) - 3rem)) !important;
+    max-width: calc(var(--app-max-width) - 3rem);
+  }
+
   /* Portals that escape .app-shell (react-modal-sheet mounts on document.body) */
   html.app-phone-shell .react-modal-sheet-root,
   html.app-phone-shell .react-modal-sheet-backdrop {

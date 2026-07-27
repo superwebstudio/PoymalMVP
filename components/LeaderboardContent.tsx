@@ -38,7 +38,7 @@ export const LeaderboardContent = () => {
         ? `/api/leaderboard?category=${category}&country=${encodeURIComponent(selectedCountry)}`
         : `/api/leaderboard?category=${category}`;
 
-    fetch(url)
+    fetch(url, { credentials: 'include' })
       .then((res) => res.json())
       .then((data) => {
         if (cancelled) return;
@@ -280,39 +280,46 @@ export const LeaderboardContent = () => {
         </div>
       ) : (
         <>
-          {/* Top 3 Podium */}
-          {leaderboard.length >= 3 && (
+          {/* Top podium — works with 1–3 contestants */}
+          {leaderboard.length > 0 && (
             <div className="flex items-end justify-center gap-2 mb-6 px-4">
-              {/* 2nd Place */}
-              <motion.div
-                initial={{ y: 100, opacity: 0 }}
-                animate={{ y: 0, opacity: 1 }}
-                transition={{
-                  type: 'spring',
-                  damping: 25,
-                  stiffness: 200,
-                  delay: 0.15
-                }}
-                className="flex-1"
-              >
-                <Link href={`/user/${leaderboard[1].id}`} className="flex flex-col items-center">
-                  <div className="w-14 h-14 rounded-full bg-zinc-800 overflow-hidden border-2 border-zinc-400 mb-2">
-                    {leaderboard[1].photoUrl ? (
-                      <CachedImage src={leaderboard[1].photoUrl} alt="" className="w-full h-full object-cover" />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center text-zinc-500 text-xl">2</div>
-                    )}
-                  </div>
-                  <Medal className="text-zinc-400 mb-1" size={18} />
-                  <div className="text-xs text-zinc-400 text-center truncate w-full">
-                    {leaderboard[1].firstName || leaderboard[1].username}
-                  </div>
-                  <div className="text-sm font-bold text-zinc-200">{leaderboard[1].score}</div>
-                  <div className="bg-zinc-800 h-16 w-full rounded-t-lg mt-2 border-t-2 border-zinc-400"></div>
-                </Link>
-              </motion.div>
+              {leaderboard.length >= 2 ? (
+                <motion.div
+                  initial={{ y: 100, opacity: 0 }}
+                  animate={{ y: 0, opacity: 1 }}
+                  transition={{
+                    type: 'spring',
+                    damping: 25,
+                    stiffness: 200,
+                    delay: 0.15,
+                  }}
+                  className="flex-1"
+                >
+                  <Link href={`/user/${leaderboard[1].id}`} className="flex flex-col items-center">
+                    <div className="w-14 h-14 rounded-full bg-zinc-800 overflow-hidden border-2 border-zinc-400 mb-2">
+                      {leaderboard[1].photoUrl ? (
+                        <CachedImage src={leaderboard[1].photoUrl} alt="" className="w-full h-full object-cover" />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center text-zinc-500 text-xl">2</div>
+                      )}
+                    </div>
+                    <Medal className="text-zinc-400 mb-1" size={18} />
+                    <div className="text-xs text-zinc-400 text-center truncate w-full">
+                      {leaderboard[1].firstName || leaderboard[1].username}
+                    </div>
+                    <div className="text-sm font-bold text-zinc-200">
+                      {leaderboard[1].score}
+                      <span className="ml-0.5 text-xs font-normal text-zinc-500">
+                        {getCategoryLabel(category, dict)}
+                      </span>
+                    </div>
+                    <div className="bg-zinc-800 h-16 w-full rounded-t-lg mt-2 border-t-2 border-zinc-400" />
+                  </Link>
+                </motion.div>
+              ) : (
+                <div className="flex-1" />
+              )}
 
-              {/* 1st Place */}
               <motion.div
                 initial={{ y: 120, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
@@ -320,7 +327,7 @@ export const LeaderboardContent = () => {
                   type: 'spring',
                   damping: 20,
                   stiffness: 180,
-                  delay: 0
+                  delay: 0,
                 }}
                 className="flex-1"
               >
@@ -336,43 +343,56 @@ export const LeaderboardContent = () => {
                   <div className="text-xs text-zinc-200 text-center truncate w-full font-semibold">
                     {leaderboard[0].firstName || leaderboard[0].username}
                   </div>
-                  <div className="text-lg font-bold text-yellow-400">{leaderboard[0].score}</div>
-                  <div className="bg-gradient-to-t from-yellow-900/30 to-yellow-700/30 h-24 w-full rounded-t-lg mt-2 border-t-4 border-yellow-400"></div>
+                  <div className="text-lg font-bold text-yellow-400">
+                    {leaderboard[0].score}
+                    <span className="ml-0.5 text-xs font-normal text-yellow-500/80">
+                      {getCategoryLabel(category, dict)}
+                    </span>
+                  </div>
+                  <div className="bg-gradient-to-t from-yellow-900/30 to-yellow-700/30 h-24 w-full rounded-t-lg mt-2 border-t-4 border-yellow-400" />
                 </Link>
               </motion.div>
 
-              {/* 3rd Place */}
-              <motion.div
-                initial={{ y: 90, opacity: 0 }}
-                animate={{ y: 0, opacity: 1 }}
-                transition={{
-                  type: 'spring',
-                  damping: 28,
-                  stiffness: 220,
-                  delay: 0.25
-                }}
-                className="flex-1"
-              >
-                <Link href={`/user/${leaderboard[2].id}`} className="flex flex-col items-center">
-                  <div className="w-14 h-14 rounded-full bg-zinc-800 overflow-hidden border-2 border-orange-600 mb-2">
-                    {leaderboard[2].photoUrl ? (
-                      <CachedImage src={leaderboard[2].photoUrl} alt="" className="w-full h-full object-cover" />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center text-zinc-500 text-xl">3</div>
-                    )}
-                  </div>
-                  <Award className="text-orange-600 mb-1" size={18} />
-                  <div className="text-xs text-zinc-400 text-center truncate w-full">
-                    {leaderboard[2].firstName || leaderboard[2].username}
-                  </div>
-                  <div className="text-sm font-bold text-zinc-200">{leaderboard[2].score}</div>
-                  <div className="bg-zinc-800 h-12 w-full rounded-t-lg mt-2 border-t-2 border-orange-600"></div>
-                </Link>
-              </motion.div>
+              {leaderboard.length >= 3 ? (
+                <motion.div
+                  initial={{ y: 90, opacity: 0 }}
+                  animate={{ y: 0, opacity: 1 }}
+                  transition={{
+                    type: 'spring',
+                    damping: 28,
+                    stiffness: 220,
+                    delay: 0.25,
+                  }}
+                  className="flex-1"
+                >
+                  <Link href={`/user/${leaderboard[2].id}`} className="flex flex-col items-center">
+                    <div className="w-14 h-14 rounded-full bg-zinc-800 overflow-hidden border-2 border-orange-600 mb-2">
+                      {leaderboard[2].photoUrl ? (
+                        <CachedImage src={leaderboard[2].photoUrl} alt="" className="w-full h-full object-cover" />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center text-zinc-500 text-xl">3</div>
+                      )}
+                    </div>
+                    <Award className="text-orange-600 mb-1" size={18} />
+                    <div className="text-xs text-zinc-400 text-center truncate w-full">
+                      {leaderboard[2].firstName || leaderboard[2].username}
+                    </div>
+                    <div className="text-sm font-bold text-zinc-200">
+                      {leaderboard[2].score}
+                      <span className="ml-0.5 text-xs font-normal text-zinc-500">
+                        {getCategoryLabel(category, dict)}
+                      </span>
+                    </div>
+                    <div className="bg-zinc-800 h-12 w-full rounded-t-lg mt-2 border-t-2 border-orange-600" />
+                  </Link>
+                </motion.div>
+              ) : (
+                <div className="flex-1" />
+              )}
             </div>
           )}
 
-          {/* Rest of Leaderboard */}
+          {/* Ranks 4+ */}
           <div className="space-y-2">
             {leaderboard.slice(3).map((user, index) => {
               const rank = index + 4;
@@ -385,16 +405,14 @@ export const LeaderboardContent = () => {
                     type: 'spring',
                     damping: 30,
                     stiffness: 250,
-                    delay: 0.35 + (index * 0.05)
+                    delay: 0.35 + index * 0.05,
                   }}
                 >
                   <Link
                     href={`/user/${user.id}`}
                     className="flex items-center gap-3 bg-zinc-900 border border-zinc-800 rounded-lg p-3 hover:border-zinc-700 transition-colors"
                   >
-                    <div className="w-8 text-center font-bold text-zinc-500">
-                      #{rank}
-                    </div>
+                    <div className="w-8 text-center font-bold text-zinc-500">#{rank}</div>
                     <div className="w-10 h-10 rounded-full bg-zinc-800 overflow-hidden flex-shrink-0">
                       {user.photoUrl ? (
                         <CachedImage src={user.photoUrl} alt="" className="w-full h-full object-cover" />
@@ -411,9 +429,7 @@ export const LeaderboardContent = () => {
                           </span>
                         )}
                       </div>
-                      {user.country && (
-                        <div className="text-xs text-zinc-500">{user.country}</div>
-                      )}
+                      {user.country && <div className="text-xs text-zinc-500">{user.country}</div>}
                     </div>
                     <div className="text-right">
                       <div className="font-bold text-lg text-zinc-200">{user.score}</div>
@@ -436,13 +452,19 @@ export const LeaderboardContent = () => {
   );
 };
 
-function getCategoryLabel(category: LeaderboardCategory, dict: any): string {
+function getCategoryLabel(category: LeaderboardCategory, dict: Record<string, string>): string {
   switch (category) {
-    case 'total': return dict.kg;
-    case 'species': return dict.species;
-    case 'streak': return dict.days;
-    case 'following': return dict.kg;
-    case 'country': return dict.kg;
-    default: return '';
+    case 'total':
+      return dict.kg || 'kg';
+    case 'species':
+      return dict.species || 'species';
+    case 'streak':
+      return dict.cm || 'cm';
+    case 'following':
+      return dict.kg || 'kg';
+    case 'country':
+      return dict.kg || 'kg';
+    default:
+      return '';
   }
 }

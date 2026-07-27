@@ -11,6 +11,7 @@ export type FishEntry = {
     imageFile?: File | null;
     bait: string;
     method: string;
+    rating: number | null;
 };
 
 export type FishEntryFormState = FishEntry & { imageFile: File | null };
@@ -51,6 +52,7 @@ export const createEmptyFishForm = (): FishEntryFormState => ({
     imageFile: null,
     bait: '',
     method: '',
+    rating: null,
 });
 
 interface LogStore {
@@ -228,7 +230,7 @@ export const useLogStore = create<LogStore>((set, get) => ({
     openFishSheet: (entry) => {
         if (entry) {
             set({
-                fishForm: { ...entry, imageFile: null },
+                fishForm: { ...entry, imageFile: null, rating: entry.rating ?? null },
                 editingEntryId: entry.id,
                 isFishSheetOpen: true,
                 fishSuggestions: [],

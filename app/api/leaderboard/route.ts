@@ -1,6 +1,7 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { Prisma } from '@prisma/client';
 import prisma from '@/lib/prisma';
+import { verifyAuth } from '@/lib/auth';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 60;
@@ -20,9 +21,19 @@ type LeaderboardRow = {
   };
 };
 
-async function attachFollowerCounts(
-  rows: Array<Omit<LeaderboardRow, '_count'> & { catchCount: number }>,
-): Promise<LeaderboardRow[]> {
+type RawUserScore = {
+  id: string;
+  firstName: string | null;
+  username: string | null;
+  photoUrl: string | null;
+  isPro: boolean;
+  country: string | null;
+  score: number | string;
+  totalWeight?: number;
+  catchCount: number;
+};
+
+async function attachFollowerCounts(rows: RawUserScore[]): Promise<LeaderboardRow[]> {
   if (rows.length === 0) return [];
 
   const ids = rows.map((row) => row.id);
@@ -51,14 +62,10 @@ async function attachFollowerCounts(
   }));
 }
 
-export async function GET(req: Request): Promise<NextResponse> {
+export async function GET(req: NextRequest): Promise<NextResponse> {
   try {
     const { searchParams } = new URL(req.url);
     const category = searchParams.get('category') || 'total';
-
-    if (category === 'streak' || category === 'following') {
-      return NextResponse.json([]);
-    }
 
     if (category === 'species') {
       const rows = await prisma.$queryRaw<
@@ -93,6 +100,94 @@ export async function GET(req: Request): Promise<NextResponse> {
       return NextResponse.json(await attachFollowerCounts(rows));
     }
 
+    // "streak" category is used as longest fish by length (UI: "По длине")
+    if (category === 'streak') {
+      const rows = await prisma.$queryRaw<
+        Array<{
+          id: string;
+          firstName: string | null;
+          username: string | null;
+          photoUrl: string | null;
+          isPro: boolean;
+          country: string | null;
+          score: number;
+          catchCount: number;
+        }>
+      >(Prisma.sql`
+        SELECT
+          u.id,
+          u."firstName",
+          u.username,
+          u."photoUrl",
+          u."isPro",
+          u.country,
+          COALESCE(MAX(c.length), 0)::float AS score,
+          COUNT(c.id)::int AS "catchCount"
+        FROM "User" u
+        INNER JOIN "Catch" c ON c."userId" = u.id
+        WHERE c.length IS NOT NULL AND c.length > 0
+        GROUP BY u.id
+        ORDER BY score DESC
+        LIMIT 50
+      `);
+
+      return NextResponse.json(
+        await attachFollowerCounts(
+          rows.map((row) => ({
+            ...row,
+            score: Number(row.score || 0).toFixed(0),
+          })),
+        ),
+      );
+    }
+
+    if (category === 'following') {
+      const auth = await verifyAuth(req);
+      if (!auth.success) {
+        return NextResponse.json([]);
+      }
+
+      const rows = await prisma.$queryRaw<
+        Array<{
+          id: string;
+          firstName: string | null;
+          username: string | null;
+          photoUrl: string | null;
+          isPro: boolean;
+          country: string | null;
+          totalWeight: number;
+          catchCount: number;
+        }>
+      >(Prisma.sql`
+        SELECT
+          u.id,
+          u."firstName",
+          u.username,
+          u."photoUrl",
+          u."isPro",
+          u.country,
+          COALESCE(SUM(c.weight), 0)::float AS "totalWeight",
+          COUNT(c.id)::int AS "catchCount"
+        FROM "User" u
+        INNER JOIN "Follow" f ON f."followingId" = u.id AND f."followerId" = ${auth.userId}
+        LEFT JOIN "Catch" c ON c."userId" = u.id
+        GROUP BY u.id
+        HAVING COALESCE(SUM(c.weight), 0) > 0
+        ORDER BY "totalWeight" DESC
+        LIMIT 50
+      `);
+
+      return NextResponse.json(
+        await attachFollowerCounts(
+          rows.map((row) => ({
+            ...row,
+            score: Number(row.totalWeight || 0).toFixed(1),
+            totalWeight: Number(row.totalWeight || 0),
+          })),
+        ),
+      );
+    }
+
     if (category === 'country') {
       const country = searchParams.get('country');
       if (!country) {
@@ -124,6 +219,7 @@ export async function GET(req: Request): Promise<NextResponse> {
         LEFT JOIN "Catch" c ON c."userId" = u.id
         WHERE u.country = ${country}
         GROUP BY u.id
+        HAVING COALESCE(SUM(c.weight), 0) > 0
         ORDER BY "totalWeight" DESC
         LIMIT 50
       `);
@@ -133,6 +229,7 @@ export async function GET(req: Request): Promise<NextResponse> {
           rows.map((row) => ({
             ...row,
             score: Number(row.totalWeight || 0).toFixed(1),
+            totalWeight: Number(row.totalWeight || 0),
           })),
         ),
       );
