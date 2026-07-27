@@ -2,12 +2,14 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { MessageCircle, Pin } from 'lucide-react';
 import { PostActions } from '@/components/PostActions';
 import { PostMenu } from '@/components/PostMenu';
 import { useI18n } from '@/lib/useI18n';
 import { useFeedStore } from '@/stores/useFeedStore';
 import { usePostStore } from '@/stores/usePostStore';
+import { useCatchStore } from '@/stores/useCatchStore';
 import { CachedImage } from '@/components/CachedImage';
 import { ProAvatarBadge } from '@/components/ProAvatarBadge';
 
@@ -70,7 +72,9 @@ export const FeedPostCard: React.FC<FeedPostCardProps> = ({
   onPinChange,
 }) => {
   const { dict } = useI18n();
+  const router = useRouter();
   const { setScrollPosition } = useFeedStore();
+  const { setCatchData, setLoading } = useCatchStore();
   const { initializePost } = usePostStore();
   const isTextOnly = item.isTextOnly || false;
   const isBaitMix = item.postType === 'bait_mix';
@@ -186,6 +190,15 @@ export const FeedPostCard: React.FC<FeedPostCardProps> = ({
     setScrollPosition(scrollTop);
   };
 
+  const openCatch = (): void => {
+    handlePostClick();
+    // Instant paint with feed payload while the detail route loads
+    setCatchData(item as never);
+    setLoading(false);
+    router.prefetch(`/catch/${item.id}`);
+    router.push(`/catch/${item.id}`);
+  };
+
   return (
     <div className="relative mb-6 w-full">
       <div className="relative w-full">
@@ -199,12 +212,11 @@ export const FeedPostCard: React.FC<FeedPostCardProps> = ({
           </div>
         )}
 
-        {/* Wrapper Link for entire post */}
+        {/* Wrapper for entire post */}
         <div
-          onClick={() => {
-            handlePostClick();
-            window.location.href = `/catch/${item.id}`;
-          }}
+          onClick={openCatch}
+          onMouseEnter={() => router.prefetch(`/catch/${item.id}`)}
+          onTouchStart={() => router.prefetch(`/catch/${item.id}`)}
           className="block cursor-pointer"
         >
           {/* Post Content */}
@@ -216,7 +228,7 @@ export const FeedPostCard: React.FC<FeedPostCardProps> = ({
                 <div
                   onClick={(e) => {
                     e.stopPropagation();
-                    window.location.href = `/user/${item.user.id}`;
+                    router.push(`/user/${item.user.id}`);
                   }}
                   className="flex items-center gap-2 hover:opacity-80 transition-opacity cursor-pointer"
                 >
@@ -358,7 +370,7 @@ export const FeedPostCard: React.FC<FeedPostCardProps> = ({
                 <div
                   onClick={(e) => {
                     e.stopPropagation();
-                    window.location.href = `/user/${item.user.id}`;
+                    router.push(`/user/${item.user.id}`);
                   }}
                   className="flex items-center gap-2 hover:opacity-80 transition-opacity cursor-pointer"
                 >
@@ -423,7 +435,7 @@ export const FeedPostCard: React.FC<FeedPostCardProps> = ({
                   <div
                     onClick={(e) => {
                       e.stopPropagation();
-                      window.location.href = `/user/${item.user.id}`;
+                      router.push(`/user/${item.user.id}`);
                     }}
                     className="flex items-center gap-2 hover:opacity-80 transition-opacity cursor-pointer bg-black/40 backdrop-blur-md rounded-full px-3 py-1.5"
                   >

@@ -45,11 +45,17 @@ export default function HomePageClient({ initialFeed, initialUser }: HomePageCli
 
     useEffect(() => {
         if (!initializedRef.current) {
-            if (Array.isArray(initialFeed)) {
+            const { pendingFeedRefresh } = useFeedStore.getState();
+
+            if (pendingFeedRefresh) {
+                // Fresh client feed from post submit — don't clobber with stale SSR cache
+                useFeedStore.setState({ pendingFeedRefresh: false, loading: false });
+            } else if (Array.isArray(initialFeed)) {
                 useFeedStore.setState({ feed: initialFeed, loading: false, feedType: 'all' });
             } else {
                 useFeedStore.setState({ feed: [], loading: false, feedType: 'all' });
             }
+
             if (initialUser) {
                 useUserStore.setState({
                     currentUser: initialUser as never,

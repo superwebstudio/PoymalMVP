@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { revalidatePath, revalidateTag } from 'next/cache';
 import prisma from '@/lib/prisma';
 import { verifyAuth } from '@/lib/auth';
 import { createCatchSchema, validateBody, formatZodError } from '@/lib/validations';
@@ -11,6 +12,11 @@ import { checkRateLimit, rateLimitResponse, CREATE_CATCH_LIMIT, addRateLimitHead
 export const dynamic = 'force-dynamic';
 
 const REFERRAL_PREMIUM_DAYS = 7;
+
+function bustFeedCache(): void {
+    revalidateTag('feed', 'max');
+    revalidatePath('/');
+}
 
 // Helper function to process referral rewards
 async function processReferralReward(userId: string): Promise<{ referredUserDays: number; referrerDays: number } | null> {
@@ -187,6 +193,7 @@ export async function POST(request: NextRequest) {
                 },
             });
 
+            bustFeedCache();
             const response = NextResponse.json(baitMixCatch, { status: 201 });
             return addRateLimitHeaders(response, rateLimit);
         }
@@ -223,6 +230,7 @@ export async function POST(request: NextRequest) {
             // Process referral reward if this is user's first catch
             const referralResult = await processReferralReward(userId);
 
+            bustFeedCache();
             const response = NextResponse.json({ 
                 success: true, 
                 catches: createdCatches,
@@ -254,6 +262,7 @@ export async function POST(request: NextRequest) {
                 },
             });
 
+            bustFeedCache();
             const response = NextResponse.json(textCatch, { status: 201 });
             return addRateLimitHeaders(response, rateLimit);
         }
@@ -283,6 +292,7 @@ export async function POST(request: NextRequest) {
         // Process referral reward if this is user's first catch
         const referralResult = await processReferralReward(userId);
 
+        bustFeedCache();
         const response = NextResponse.json({ 
             ...singleCatch, 
             referralReward: referralResult 

@@ -25,13 +25,9 @@ export const CatchDetailsModal: React.FC<CatchDetailsModalProps> = ({
     const {
         weatherData,
         marineData,
-        loading: weatherLoading,
-        error: weatherError,
         locationName: weatherLocationName,
         expandedSections,
         toggleSection,
-        fetchBasicInfo,
-        fetchWeatherData,
     } = useWeatherStore();
 
     const sectionRefs = useRef<Record<string, HTMLDivElement | null>>({});
@@ -51,10 +47,10 @@ export const CatchDetailsModal: React.FC<CatchDetailsModalProps> = ({
     const lng = catchData.longitude != null ? Number(catchData.longitude) : null;
     const hasCoordinates = !!(lat != null && lng != null && !isNaN(lat) && !isNaN(lng));
 
-    // Load stored weather data into store when modal opens
+    // Load stored weather data into store when modal opens — never fetch live weather
+    // for catches that did not opt in at post time.
     useEffect(() => {
         if (isOpen && hasStoredWeather && storedWeatherData) {
-            // Set stored weather data in the store for display
             useWeatherStore.setState({
                 weatherData: storedWeatherData.weather || null,
                 marineData: storedWeatherData.marine || null,
@@ -63,20 +59,23 @@ export const CatchDetailsModal: React.FC<CatchDetailsModalProps> = ({
                 loading: false,
                 error: null,
             });
-        } else if (isOpen && !hasStoredWeather && hasCoordinates && lat != null && lng != null && !hasFetchedRef.current) {
-            // Only fetch current weather if no stored weather exists
-            hasFetchedRef.current = true;
-            fetchBasicInfo(lat, lng);
-            fetchWeatherData(lat, lng);
         }
-    }, [isOpen, hasStoredWeather, storedWeatherData, hasCoordinates, lat, lng, catchData.location, fetchBasicInfo, fetchWeatherData]);
+    }, [isOpen, hasStoredWeather, storedWeatherData, catchData.location]);
 
-    // Reset fetch flag when modal closes
+    // Reset weather store leftovers when closing so the next catch doesn't show stale data
     useEffect(() => {
         if (!isOpen) {
             hasFetchedRef.current = false;
+            if (!hasStoredWeather) {
+                useWeatherStore.setState({
+                    weatherData: null,
+                    marineData: null,
+                    error: null,
+                    loading: false,
+                });
+            }
         }
-    }, [isOpen]);
+    }, [isOpen, hasStoredWeather]);
 
     // Handle section scrolling
     useEffect(() => {
@@ -94,8 +93,8 @@ export const CatchDetailsModal: React.FC<CatchDetailsModalProps> = ({
     const displayLocationName = catchData.location || weatherLocationName || 
         (hasCoordinates && lat != null && lng != null ? `${lat.toFixed(4)}, ${lng.toFixed(4)}` : null);
 
-    // Use larger snap points if weather data is available (stored or loading)
-    const hasWeatherData = !!(weatherData || weatherLoading || hasStoredWeather || marineData);
+    // Larger sheet only when this catch actually has weather from posting
+    const hasWeatherData = hasStoredWeather;
     const snapPoints = hasWeatherData ? [0, 0.5, 0.85, 1] : [0, 0.4, 1];
     const initialSnap = hasWeatherData ? 2 : 1; // Open to 85% with weather, 40% without
 
@@ -162,9 +161,8 @@ export const CatchDetailsModal: React.FC<CatchDetailsModalProps> = ({
                             </div>
                         )}
 
-                        {/* Weather Section */}
+                        {/* Weather — only when opted in at post time */}
                         {hasStoredWeather ? (
-                            // Show stored weather from catch creation
                             <div className="space-y-3 pt-2 border-t border-zinc-800">
                                 <div className="flex items-center gap-2 mb-2">
                                     {getWeatherIcon()}
@@ -198,75 +196,19 @@ export const CatchDetailsModal: React.FC<CatchDetailsModalProps> = ({
                                     </div>
                                 )}
                             </div>
-                        ) : hasCoordinates ? (
-                            // Fetch current weather if coordinates available but no stored weather
-                            <div className="space-y-3 pt-2 border-t border-zinc-800">
-                                <div className="flex items-center gap-2 mb-2">
-                                    {getWeatherIcon()}
-                                    <h4 className="text-sm font-semibold text-zinc-200">{dict.weather || 'Weather'}</h4>
-                                </div>
-                                {displayLocationName && (
-                                    <p className="text-xs text-zinc-400 mb-3">{displayLocationName}</p>
-                                )}
-
-                                {weatherLoading && (
-                                    <div className="flex items-center justify-center py-6">
-                                        <div className="w-5 h-5 border-2 border-sky-500 border-t-transparent rounded-full animate-spin" />
-                                    </div>
-                                )}
-
-                                {weatherError && (
-                                    <div className="text-red-400 text-xs text-center py-3 bg-red-500/10 rounded-lg border border-red-500/20">
-                                        {weatherError}
-                                    </div>
-                                )}
-
-                                {!weatherLoading && !weatherError && (weatherData || marineData) && (
-                                    <div className="space-y-3">
-                                        {weatherData && (
-                                            <WeatherSummaryGrid dict={dict} weatherData={weatherData} />
-                                        )}
-
-                                        {marineData && (
-                                            <div ref={(el) => { sectionRefs.current['marine'] = el; }}>
-                                                <MarineConditions
-                                                    dict={dict}
-                                                    data={marineData}
-                                                    isOpen={expandedSections.has('marine')}
-                                                    onToggle={toggleSection}
-                                                />
-                                            </div>
-                                        )}
-                                    </div>
-                                )}
-
-                                {!weatherLoading && !weatherError && !weatherData && (
-                                    <div className="text-yellow-400 text-xs text-center py-3">
-                                        {dict.loadingWeather || 'Loading weather data...'}
-                                    </div>
-                                )}
-                            </div>
                         ) : weatherEnabledButNoCoordinates ? (
-                            // Weather switch was enabled but no coordinates were available at catch time
                             <div className="pt-2 border-t border-zinc-800">
                                 <div className="text-xs text-yellow-400 text-center py-3 bg-yellow-500/10 rounded-lg border border-yellow-500/20">
                                     {(dict as any).weatherEnabledButNoCoordinates || 'Weather was enabled but location coordinates were not available at catch time'}
                                 </div>
                             </div>
                         ) : weatherWasEnabled && !hasStoredWeather ? (
-                            // Weather switch was enabled but weather fetch failed
                             <div className="pt-2 border-t border-zinc-800">
                                 <div className="text-xs text-yellow-400 text-center py-3 bg-yellow-500/10 rounded-lg border border-yellow-500/20">
                                     {(dict as any).weatherFetchFailed || 'Weather was enabled but could not be fetched at catch time'}
                                 </div>
                             </div>
-                        ) : (
-                            <div className="pt-2 border-t border-zinc-800">
-                                <div className="text-xs text-zinc-500 text-center py-3">
-                                    {dict.noLocationForWeather || 'No location coordinates available for weather'}
-                                </div>
-                            </div>
-                        )}
+                        ) : null}
                     </div>
                 </Sheet.Content>
             </Sheet.Container>

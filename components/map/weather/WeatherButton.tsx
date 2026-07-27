@@ -23,9 +23,7 @@ export const WeatherButton: React.FC<WeatherButtonProps> = ({
     <motion.button
       type="button"
       onClick={onToggle}
-      className={`fixed left-4 top-40 flex touch-manipulation items-center gap-2 rounded-full bg-black/40 px-3 py-2 text-sm text-white shadow-lg backdrop-blur-md transition-colors hover:bg-black/60 ${
-        isBottomSheetOpen ? "z-[40]" : "z-[120]"
-      }`}
+      className="fixed left-4 top-40 z-[120] flex touch-manipulation items-center gap-2 rounded-full bg-black/40 px-3 py-2 text-sm text-white shadow-lg backdrop-blur-md transition-colors hover:bg-black/60"
       whileHover={{ scale: 1.05 }}
       whileTap={{ scale: 0.95 }}
     >

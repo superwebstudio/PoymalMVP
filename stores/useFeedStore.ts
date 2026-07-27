@@ -10,6 +10,8 @@ interface FeedStore {
   scrollPosition: number;
   isMenuOpen: boolean;
   pendingView: 'feed' | 'news' | null;
+  /** After posting, skip overwriting store with stale SSR feed */
+  pendingFeedRefresh: boolean;
   setFeed: (feed: any[]) => void;
   setLoading: (loading: boolean) => void;
   setFeedType: (type: FeedType) => void;
@@ -17,10 +19,11 @@ interface FeedStore {
   setScrollPosition: (position: number) => void;
   setMenuOpen: (open: boolean) => void;
   setPendingView: (view: 'feed' | 'news' | null) => void;
+  setPendingFeedRefresh: (pending: boolean) => void;
   fetchFeed: (type: FeedType, showTransition?: boolean) => Promise<void>;
 }
 
-export const useFeedStore = create<FeedStore>((set, get) => ({
+export const useFeedStore = create<FeedStore>((set) => ({
   feed: [],
   loading: true,
   feedType: 'all',
@@ -28,6 +31,7 @@ export const useFeedStore = create<FeedStore>((set, get) => ({
   scrollPosition: 0,
   isMenuOpen: false,
   pendingView: null,
+  pendingFeedRefresh: false,
   setFeed: (feed) => set({ feed }),
   setLoading: (loading) => set({ loading }),
   setFeedType: (feedType) => set({ feedType }),
@@ -35,6 +39,7 @@ export const useFeedStore = create<FeedStore>((set, get) => ({
   setScrollPosition: (position) => set({ scrollPosition: position }),
   setMenuOpen: (open) => set({ isMenuOpen: open }),
   setPendingView: (view) => set({ pendingView: view }),
+  setPendingFeedRefresh: (pending) => set({ pendingFeedRefresh: pending }),
   fetchFeed: async (type: FeedType, showTransition = false) => {
     if (showTransition) {
       set({ isTransitioning: true });
@@ -43,6 +48,7 @@ export const useFeedStore = create<FeedStore>((set, get) => ({
       const feedQuery = type === 'all' ? 'all' : 'all';
       const feedResponse = await fetch(`/api/feed?type=${feedQuery}`, {
         credentials: 'include',
+        cache: 'no-store',
       });
       const feedData: unknown = await feedResponse.json();
       set({
@@ -60,4 +66,3 @@ export const useFeedStore = create<FeedStore>((set, get) => ({
     }
   },
 }));
-

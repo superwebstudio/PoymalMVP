@@ -48,7 +48,6 @@ function LogCatchForm() {
   const searchParams = useSearchParams();
   const searchParamsString = searchParams?.toString() ?? '';
   const { position, loading: locationLoading, getCurrentLocation } = useGeolocation();
-  const { onSubmit, isCreating } = useLogSubmit(dict);
 
   const querySelectedLocation = React.useMemo(() => {
     if (!searchParamsString) return null;
@@ -70,9 +69,27 @@ function LogCatchForm() {
 
   const methods = useForm<CatchFormValues>({
     resolver: zodResolver(catchSchema),
+    defaultValues: {
+      description: '',
+      location: '',
+      depth: '',
+      bait: '',
+      method: '',
+    },
   });
-  const { register, handleSubmit, setValue, watch } = methods;
+  const { register, handleSubmit, setValue, watch, reset } = methods;
   const locationInput = watch('location');
+
+  const { onSubmit, isCreating } = useLogSubmit(dict, {
+    resetForm: () =>
+      reset({
+        description: '',
+        location: '',
+        depth: '',
+        bait: '',
+        method: '',
+      }),
+  });
 
   const selectedLocation = store.selectedLocation;
   const setSelectedLocation = store.setSelectedLocation;

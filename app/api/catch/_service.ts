@@ -14,6 +14,12 @@ export async function getCatch(id: string) {
                         isPro: true,
                     },
                 },
+                reactions: {
+                    select: {
+                        emoji: true,
+                        userId: true,
+                    },
+                },
                 _count: {
                     select: {
                         likes: true,
@@ -26,38 +32,31 @@ export async function getCatch(id: string) {
 
         if (!catchData) return null;
 
-        // Fetch reactions separately
-        let reactions: any[] = [];
-        try {
-            // @ts-ignore
-            reactions = await prisma.reaction?.findMany({
-                where: { catchId: id },
-                select: {
-                    emoji: true,
-                    userId: true,
-                },
-            }) || [];
-        } catch (e) {
-            reactions = [];
-        }
-
-        return {
-            ...catchData,
-            reactions,
-        };
+        return catchData;
     } catch (error) {
         console.error('Get catch error:', error);
         return null;
     }
 }
 
-export async function getRelatedCatches(id: string, userId: string, createdAt: Date | string, location?: string | null) {
+export async function getRelatedCatches(
+    id: string,
+    userId: string,
+    createdAt: Date | string,
+    location?: string | null,
+) {
     try {
         const catchDate = new Date(createdAt);
         const timeWindowStart = new Date(catchDate.getTime() - 5000);
         const timeWindowEnd = new Date(catchDate.getTime() + 5000);
 
-        const where: any = {
+        const where: {
+            userId: string;
+            createdAt: { gte: Date; lte: Date };
+            isTextOnly: boolean;
+            id: { not: string };
+            location?: string;
+        } = {
             userId,
             createdAt: {
                 gte: timeWindowStart,
@@ -71,7 +70,7 @@ export async function getRelatedCatches(id: string, userId: string, createdAt: D
             where.location = location;
         }
 
-        const relatedCatches = await prisma.catch.findMany({
+        return await prisma.catch.findMany({
             where,
             select: {
                 id: true,
@@ -90,12 +89,8 @@ export async function getRelatedCatches(id: string, userId: string, createdAt: D
                 createdAt: 'asc',
             },
         });
-
-        return relatedCatches;
     } catch (error) {
         console.error('Error fetching related catches:', error);
         return [];
     }
 }
-
-

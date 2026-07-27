@@ -573,6 +573,7 @@ export const i18n = {
         noReward: "награды нет",
 
         // Bait Mix Form
+        baitMix: "Смесь",
         baitMixName: "Название смеси",
         baitMixNamePlaceholder: "Введите название смеси...",
         baitMixNameHelper: "Дайте вашей смеси описательное название (например, \"Специальная смесь для карпа\" или \"Зимняя наживка для щуки\")",

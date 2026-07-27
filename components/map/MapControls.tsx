@@ -12,6 +12,8 @@ interface MapControlsProps {
   onToggleLiveMode?: () => void;
   showFullscreenToggle?: boolean;
   showNearbyButton?: boolean;
+  /** Hide bottom recenter when a bottom sheet covers that area */
+  showRecenter?: boolean;
   bottomOffset?: string;
 }
 
@@ -22,6 +24,7 @@ export function MapControls({
   onShowNearby,
   liveMode = false,
   onToggleLiveMode,
+  showRecenter = true,
   bottomOffset,
 }: MapControlsProps) {
   return (
@@ -67,22 +70,24 @@ export function MapControls({
         </motion.button>
       )}
 
-      <motion.button
-        type="button"
-        initial={{ opacity: 0, scale: 0.8 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ delay: 0.25 }}
-        onClick={onCenterLocation}
-        className="fixed right-4 z-[120] touch-manipulation rounded-full bg-black/40 p-3 text-white backdrop-blur-md transition-colors hover:bg-black/60"
-        style={{
-          bottom: bottomOffset ||
-            (isBottomNavVisible
-              ? "calc(6rem + 0.5rem + 100px + 0.5rem)"
-              : "calc(100px + 0.5rem)"),
-        }}
-      >
-        <Navigation size={20} />
-      </motion.button>
+      {showRecenter && (
+        <motion.button
+          type="button"
+          initial={{ opacity: 0, scale: 0.8 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ delay: 0.25 }}
+          onClick={onCenterLocation}
+          className="fixed right-4 z-[120] touch-manipulation rounded-full bg-black/40 p-3 text-white backdrop-blur-md transition-colors hover:bg-black/60"
+          style={{
+            bottom: bottomOffset ||
+              (isBottomNavVisible
+                ? "calc(6rem + 0.5rem + 100px + 0.5rem)"
+                : "calc(100px + 0.5rem)"),
+          }}
+        >
+          <Navigation size={20} />
+        </motion.button>
+      )}
     </>
   );
 }

@@ -565,7 +565,6 @@ export default function MapPageClient({ initialSavedLocations }: MapPageClientPr
                 />
             )}
 
-            {!showNearbySheet && (
             <MapControls
                 isBottomNavVisible={isBottomNavVisible}
                 onToggleBottomNav={() => setIsBottomNavVisible(!isBottomNavVisible)}
@@ -573,8 +572,8 @@ export default function MapPageClient({ initialSavedLocations }: MapPageClientPr
                 onShowNearby={handleToggleNearbySheet}
                 liveMode={liveMode}
                 onToggleLiveMode={accessTier === 'guest' ? undefined : toggleLiveMode}
+                showRecenter={!showNearbySheet}
             />
-            )}
 
             {userLocation && <UserLocationMarker map={map} userLocation={userLocation} />}
 

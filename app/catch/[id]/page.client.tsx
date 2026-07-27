@@ -8,8 +8,6 @@ import { useFeedStore } from '@/stores/useFeedStore';
 import { useModalStore } from '@/stores/useModalStore';
 import { useCatchStore } from '@/stores/useCatchStore';
 import { SwipeablePage } from '@/components/SwipeablePage';
-import { FeedPageContent } from '@/components/FeedPageContent';
-import ProfilePageClient from '@/app/profile/page.client';
 import { BottomNav } from '@/components/BottomNav';
 import { TelegramBackButton } from '@/components/TelegramBackButton';
 import { PostActionsHorizontal } from '@/components/PostActionsHorizontal';
@@ -54,20 +52,14 @@ export default function CatchDetailPageClient({ catchId, initialCatchData, initi
 
     const [returnTo] = useState<string>(initialReturnTo);
 
-    // Hydrate Catch Store (NOT post/like store - that's handled by usePostActions)
-    const initializedRef = useRef(false);
+    // Prefer server data when it arrives; keep provisional feed payload for instant paint
     useEffect(() => {
-        if (!initializedRef.current) {
-            if (initialCatchData) {
-                setCatchData(initialCatchData);
-            }
-            if (initialRelatedCatches) {
-                setRelatedCatches(initialRelatedCatches);
-            }
-            setLoading(false);
-            initializedRef.current = true;
+        if (initialCatchData) {
+            setCatchData(initialCatchData);
         }
-    }, [initialCatchData, initialRelatedCatches, setCatchData, setRelatedCatches, setLoading]);
+        setRelatedCatches(initialRelatedCatches || []);
+        setLoading(false);
+    }, [catchId, initialCatchData, initialRelatedCatches, setCatchData, setRelatedCatches, setLoading]);
 
     useEffect(() => {
         if (!catchId || !currentUserId) return;
@@ -183,18 +175,7 @@ export default function CatchDetailPageClient({ catchId, initialCatchData, initi
         'Float fishing': dict.floatFishing,
     };
 
-    const previousPageComponent = returnTo === '/profile' ? (
-        <ProfilePageClient initialUser={null} />
-    ) : (
-        <FeedPageContent
-            scrollPosition={scrollPosition}
-            onScroll={(scrollTop) => {
-                if (returnTo === '/') {
-                    setScrollPosition(scrollTop);
-                }
-            }}
-        />
-    );
+    const previousPageComponent = null;
 
     // While hydrating or if no data found (and not loading from client hook which we removed)
     if (!catchData && !initialCatchData) {
@@ -205,8 +186,9 @@ export default function CatchDetailPageClient({ catchId, initialCatchData, initi
         );
     }
 
-    // Use store data (which is hydrated)
-    const displayData = catchData || initialCatchData;
+    // Use store data when it matches this catch (provisional feed paint), else SSR
+    const displayData =
+        catchData?.id === catchId ? catchData : initialCatchData;
     const isOwner = displayData?.userId === currentUserId;
 
     // Derive allCatches for carousel if needed

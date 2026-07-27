@@ -36,16 +36,18 @@ export const FishCard: React.FC<FishCardProps> = ({
             style={isFullWidth ? {} : { scrollSnapAlign: 'start' }}
         >
             {fish.imageUrl ? (
-                <div className={`relative ${isFullWidth ? 'w-full' : 'aspect-square'}`}>
+                <div className={`relative w-full ${isFullWidth ? 'aspect-[4/3]' : 'aspect-square'} bg-zinc-800`}>
                     <CachedImage
                         src={fish.imageUrl}
                         alt={fish.species || 'Catch'}
-                        className={`w-full ${isFullWidth ? 'h-auto object-contain' : 'h-full object-cover'}`}
+                        className="h-full w-full"
+                        sizes={isFullWidth ? '(max-width: 768px) 100vw, 640px' : '280px'}
+                        priority={isFullWidth}
                         onClick={() => onImageClick(fish.imageUrl)}
                     />
                 </div>
             ) : (
-                <div className={`${isFullWidth ? 'w-full h-64' : 'aspect-square'} flex items-center justify-center bg-zinc-800`}>
+                <div className={`${isFullWidth ? 'w-full aspect-[4/3]' : 'aspect-square'} flex items-center justify-center bg-zinc-800`}>
                     <Fish size={48} className="text-zinc-600" />
                 </div>
             )}

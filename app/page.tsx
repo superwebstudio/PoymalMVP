@@ -7,7 +7,7 @@ import HomePageClient from './page.client';
 const getCachedPublicFeed = unstable_cache(
   async () => getFeed(undefined, 'all'),
   ['home-public-feed-v1'],
-  { revalidate: 60 },
+  { revalidate: 60, tags: ['feed'] },
 );
 
 function HomeFallback(): React.JSX.Element {

@@ -121,6 +121,7 @@ interface LogStore {
 
     // Helpers
     resetFishForm: () => void;
+    resetLogDraft: () => void;
     openFishSheet: (entry?: FishEntry) => void;
     closeFishSheet: () => void;
 }
@@ -196,6 +197,33 @@ export const useLogStore = create<LogStore>((set, get) => ({
         fishSuggestions: [],
         showFishSuggestions: false
     }),
+
+    resetLogDraft: () =>
+        set({
+            postMode: 'full',
+            locationPrivate: false,
+            includeWeather: false,
+            showAdditional: false,
+            enlargedImage: null,
+            selectedLocation: null,
+            baitMixForm: createEmptyBaitMixForm(),
+            fishEntries: [],
+            deleteConfirmId: null,
+            deleteIngredientId: null,
+            isFishSheetOpen: false,
+            editingEntryId: null,
+            fishForm: createEmptyFishForm(),
+            fishSuggestions: [],
+            showFishSuggestions: false,
+            isSpeciesInputFocused: false,
+            weightError: false,
+            lengthError: false,
+            modalState: {
+                isOpen: false,
+                message: '',
+                isSuccess: false,
+            },
+        }),
 
     openFishSheet: (entry) => {
         if (entry) {

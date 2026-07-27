@@ -6,14 +6,32 @@ import { useGeolocation } from '@/hooks/useGeolocation';
 import { useWeatherStore } from '@/stores/useWeatherStore';
 import { useNotificationStore } from '@/stores/useNotificationStore';
 import { uploadCatchImage } from '@/lib/image-upload';
+import { useFeedStore } from '@/stores/useFeedStore';
 
-export function useLogSubmit(dict: any) {
+type LogSubmitOptions = {
+  resetForm?: () => void;
+};
+
+export function useLogSubmit(dict: any, options?: LogSubmitOptions) {
   const router = useRouter();
   const { userId } = useUserStore();
   const store = useLogStore();
   const { position } = useGeolocation();
   const { addNotification } = useNotificationStore();
   const [isCreating, setIsCreating] = useState(false);
+
+  const clearDraft = (): void => {
+    store.resetLogDraft();
+    options?.resetForm?.();
+  };
+
+  const goToFeedAfterPost = async (): Promise<void> => {
+    await useFeedStore.getState().fetchFeed('all');
+    // Keep flag true so home does not replace this with stale SSR cache
+    useFeedStore.getState().setPendingFeedRefresh(true);
+    router.push('/');
+    router.refresh();
+  };
 
   const onSubmit = async (formData: {
     description?: string;
@@ -149,11 +167,9 @@ export function useLogSubmit(dict: any) {
           type: 'success',
         });
 
-        store.resetBaitMixForm();
+        clearDraft();
 
-        setTimeout(() => {
-          router.push('/');
-        }, 1500);
+        await goToFeedAfterPost();
         return;
       }
 
@@ -197,9 +213,9 @@ export function useLogSubmit(dict: any) {
           type: 'success',
         });
 
-        setTimeout(() => {
-          router.push('/');
-        }, 1500);
+        clearDraft();
+
+        await goToFeedAfterPost();
         return;
       }
 
@@ -285,12 +301,9 @@ export function useLogSubmit(dict: any) {
         type: 'success',
       });
 
-      store.setFishEntries([]);
-      store.resetFishForm();
+      clearDraft();
 
-      setTimeout(() => {
-        router.push('/');
-      }, 1500);
+      await goToFeedAfterPost();
     } catch (error: unknown) {
       console.error('Error submitting catch:', error);
       const message =
