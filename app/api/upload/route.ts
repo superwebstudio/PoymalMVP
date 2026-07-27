@@ -1,84 +1,150 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { writeFile, mkdir } from 'fs/promises';
-import { join } from 'path';
-import { existsSync } from 'fs';
+import type { SupabaseClient } from '@supabase/supabase-js';
+import { createServerSupabaseClient } from '@/lib/supabase';
 import { verifyAuth } from '@/lib/auth';
-import { validateImageFile, generateSafeFilename, validateUploadPath } from '@/lib/file-security';
-import { checkRateLimit, rateLimitResponse, UPLOAD_LIMIT, addRateLimitHeaders } from '@/lib/rate-limit';
+import {
+  validateImageFile,
+  generateSafeFilename,
+} from '@/lib/file-security';
+import {
+  checkRateLimit,
+  rateLimitResponse,
+  UPLOAD_LIMIT,
+  addRateLimitHeaders,
+} from '@/lib/rate-limit';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
-const UPLOAD_DIR = join(process.cwd(), 'public', 'uploads');
+const IMAGE_BUCKET = 'catch-images';
+const VIDEO_BUCKET = 'catch-videos';
 
-// Ensure upload directory exists
-async function ensureUploadDir() {
-    if (!existsSync(UPLOAD_DIR)) {
-        await mkdir(UPLOAD_DIR, { recursive: true });
-    }
+async function ensurePublicBucket(
+  supabase: SupabaseClient,
+  bucket: string,
+  isImage: boolean,
+): Promise<void> {
+  const { data: buckets, error: listError } = await supabase.storage.listBuckets();
+  if (listError) {
+    throw new Error(listError.message || 'Unable to list storage buckets');
+  }
+
+  if (buckets?.some((item) => item.name === bucket)) {
+    return;
+  }
+
+  const { error: createError } = await supabase.storage.createBucket(bucket, {
+    public: true,
+    fileSizeLimit: MAX_FILE_SIZE,
+    allowedMimeTypes: isImage
+      ? ['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'image/heic']
+      : ['video/mp4', 'video/webm', 'video/quicktime'],
+  });
+
+  if (createError && !/already exists|duplicate/i.test(createError.message)) {
+    throw new Error(createError.message || `Unable to create bucket ${bucket}`);
+  }
 }
 
-export async function POST(request: NextRequest) {
-    try {
-        // Verify authentication
-        const auth = await verifyAuth(request);
-        if (!auth.success) {
-            return NextResponse.json({ error: auth.error }, { status: auth.status });
-        }
-        
-        const { userId } = auth;
+/**
+ * Legacy `/api/upload` — must use object storage on Vercel (EROFS on /var/task).
+ * Prefer `/api/upload-supabase` for new callers; this route stays for catch logging.
+ */
+export async function POST(request: NextRequest): Promise<NextResponse> {
+  try {
+    const auth = await verifyAuth(request);
+    if (!auth.success) {
+      return NextResponse.json({ error: auth.error }, { status: auth.status });
+    }
 
-        // Rate limiting
-        const rateLimit = checkRateLimit(userId, UPLOAD_LIMIT);
-        if (!rateLimit.success) {
-            return rateLimitResponse(rateLimit);
-        }
+    const { userId } = auth;
 
-        const formData = await request.formData();
-        const file = formData.get('file') as File;
+    const rateLimit = checkRateLimit(userId, UPLOAD_LIMIT);
+    if (!rateLimit.success) {
+      return rateLimitResponse(rateLimit);
+    }
 
-        if (!file) {
-            return NextResponse.json({ error: 'No file provided' }, { status: 400 });
-        }
+    const formData = await request.formData();
+    const file = formData.get('file') as File | null;
 
-        // Convert file to buffer first for content validation
-        const bytes = await file.arrayBuffer();
-        const buffer = Buffer.from(bytes);
+    if (!file) {
+      return NextResponse.json({ error: 'No file provided' }, { status: 400 });
+    }
 
-        // Validate file content using magic bytes (not just MIME type)
-        const validation = validateImageFile(buffer, MAX_FILE_SIZE);
-        
-        if (!validation.isValid) {
-            return NextResponse.json({ error: validation.error || 'Invalid file' }, { status: 400 });
-        }
+    if (file.size > MAX_FILE_SIZE) {
+      return NextResponse.json(
+        { error: 'File size exceeds 10MB limit' },
+        { status: 400 },
+      );
+    }
 
-        // Ensure upload directory exists
-        await ensureUploadDir();
+    const bytes = await file.arrayBuffer();
+    const buffer = Buffer.from(bytes);
 
-        // Generate safe filename using detected extension (not user-provided)
-        const filename = generateSafeFilename(userId, validation.ext!, 'upload');
-        
-        // Validate path doesn't escape upload directory
-        const filepath = validateUploadPath(UPLOAD_DIR, filename);
-        if (!filepath) {
-            return NextResponse.json({ error: 'Invalid filename' }, { status: 400 });
-        }
+    const isVideo = file.type.startsWith('video/');
+    const isImage = file.type.startsWith('image/') || !isVideo;
 
-        // Save file
-        await writeFile(filepath, buffer);
+    let contentType = file.type || 'application/octet-stream';
+    let extension = file.name.split('.').pop() || (isVideo ? 'mp4' : 'jpg');
+    let filename: string;
 
-        // Return the public URL
-        const url = `/uploads/${filename}`;
-
-        const response = NextResponse.json({ url }, { status: 200 });
-        return addRateLimitHeaders(response, rateLimit);
-    } catch (error) {
-        console.error('Upload error:', error);
+    if (isVideo) {
+      filename = generateSafeFilename(userId, extension, 'upload');
+    } else {
+      const validation = validateImageFile(buffer, MAX_FILE_SIZE);
+      if (!validation.isValid) {
         return NextResponse.json(
-            { error: 'Failed to upload file' },
-            { status: 500 }
+          { error: validation.error || 'Invalid file' },
+          { status: 400 },
         );
+      }
+      extension = validation.ext || 'jpg';
+      contentType = validation.mime || 'image/jpeg';
+      filename = generateSafeFilename(userId, extension, 'upload');
     }
-}
 
+    const folder = formData.get('folder');
+    const isAvatar =
+      typeof folder === 'string' && folder === 'avatars' && !isVideo;
+
+    const bucket = isVideo ? VIDEO_BUCKET : IMAGE_BUCKET;
+    const filePath = isAvatar
+      ? `avatars/${filename}`
+      : `${bucket}/${filename}`;
+
+    const supabase = createServerSupabaseClient();
+    await ensurePublicBucket(supabase, bucket, !isVideo);
+
+    const { error: uploadError } = await supabase.storage
+      .from(bucket)
+      .upload(filePath, buffer, {
+        contentType,
+        upsert: false,
+      });
+
+    if (uploadError) {
+      console.error('Supabase upload error:', uploadError);
+      return NextResponse.json(
+        { error: uploadError.message || 'Failed to upload file' },
+        { status: 500 },
+      );
+    }
+
+    const {
+      data: { publicUrl },
+    } = supabase.storage.from(bucket).getPublicUrl(filePath);
+
+    const response = NextResponse.json({ url: publicUrl }, { status: 200 });
+    return addRateLimitHeaders(response, rateLimit);
+  } catch (error) {
+    console.error('Upload error:', error);
+    return NextResponse.json(
+      {
+        error:
+          error instanceof Error ? error.message : 'Failed to upload file',
+      },
+      { status: 500 },
+    );
+  }
+}

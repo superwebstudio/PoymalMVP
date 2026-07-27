@@ -97,12 +97,7 @@ export function useLogSubmit(dict: any) {
             });
           } catch (error) {
             console.error('Error uploading image:', error);
-            addNotification({
-              message: error instanceof Error ? error.message : 'Failed to upload image',
-              type: 'error',
-              position: 'center',
-              showOkButton: true,
-            });
+            // Re-throw so the outer catch shows a single error modal
             throw error;
           }
         }
@@ -232,12 +227,7 @@ export function useLogSubmit(dict: any) {
               });
             } catch (error) {
               console.error('Error uploading image:', error);
-              addNotification({
-                message: error instanceof Error ? error.message : 'Failed to upload image',
-                type: 'error',
-                position: 'center',
-                showOkButton: true,
-              });
+              // Re-throw so the outer catch shows a single error modal
               throw error;
             }
           }

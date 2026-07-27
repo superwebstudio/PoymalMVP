@@ -61,7 +61,7 @@ export async function uploadCatchImage(options: {
   const formData = new FormData();
   formData.append("file", file, file.name || filename);
 
-  const uploadResponse = await fetch("/api/upload", {
+  const uploadResponse = await fetch("/api/upload-supabase", {
     method: "POST",
     credentials: "include",
     body: formData,

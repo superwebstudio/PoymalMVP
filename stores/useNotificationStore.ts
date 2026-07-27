@@ -26,12 +26,23 @@ export const useNotificationStore = create<NotificationStore>((set) => ({
   notifications: [],
   addNotification: (notification) => {
     const id = Math.random().toString(36).substring(7);
-    set((state) => ({
-      notifications: [...state.notifications, { ...notification, id }],
-    }));
+    set((state) => {
+      // Center modals replace each other — never stack side-by-side
+      const withoutStaleCenter =
+        notification.position === 'center'
+          ? state.notifications.filter((n) => n.position !== 'center')
+          : state.notifications;
+
+      return {
+        notifications: [...withoutStaleCenter, { ...notification, id }],
+      };
+    });
 
     // Don't auto-dismiss center notifications with OK button
-    if (notification.duration !== 0 && !(notification.position === 'center' && notification.showOkButton)) {
+    if (
+      notification.duration !== 0 &&
+      !(notification.position === 'center' && notification.showOkButton)
+    ) {
       setTimeout(() => {
         set((state) => ({
           notifications: state.notifications.filter((n) => n.id !== id),

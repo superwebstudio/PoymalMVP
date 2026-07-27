@@ -122,7 +122,7 @@ export const api = {
  */
 export async function uploadFile(
   file: File,
-  endpoint: string = '/api/upload'
+  endpoint: string = '/api/upload-supabase'
 ): Promise<{ url: string | null; error: string | null }> {
   const formData = new FormData();
   formData.append('file', file);
