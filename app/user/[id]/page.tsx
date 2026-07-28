@@ -174,14 +174,9 @@ export default function UserProfilePage({ params }: { params: Promise<{ id: stri
                                     );
                                 })()}
                             </div>
-                            {(() => {
-                                const showTelegramHandle = isOwnProfile
-                                    ? (preferences?.showTelegramHandle ?? user.showTelegramHandle ?? true)
-                                    : (user.showTelegramHandle ?? true);
-                                return showTelegramHandle && user.username && (
-                                    <p className="text-zinc-500 text-sm">@{user.username}</p>
-                                );
-                            })()}
+                            {user.username && (
+                                <p className="text-zinc-500 text-sm">@{user.username}</p>
+                            )}
 
                             <div className="flex gap-4 mt-3 text-sm">
                                 <Link

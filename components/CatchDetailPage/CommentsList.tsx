@@ -1,15 +1,17 @@
 import React, { useState } from 'react';
-import { CommentItem } from './CommentItem';
+import { CommentItem, type CommentLikeState } from './CommentItem';
 import { useNotificationStore } from '@/stores/useNotificationStore';
 
 interface CommentsListProps {
-  comments: any[];
+  comments: CommentLikeState[];
   loadingComments: boolean;
   currentUserId: string | null | undefined;
-  dict: any;
+  dict: Record<string, string>;
   catchId: string | null;
   onCommentsChange: () => void;
-  setCatchData: (data: any) => void;
+  setCatchData: (data: unknown) => void;
+  onReply?: (comment: CommentLikeState) => void;
+  onCommentLiked?: () => void;
 }
 
 export const CommentsList: React.FC<CommentsListProps> = ({
@@ -20,37 +22,31 @@ export const CommentsList: React.FC<CommentsListProps> = ({
   catchId,
   onCommentsChange,
   setCatchData,
+  onReply,
+  onCommentLiked,
 }) => {
   const { addNotification } = useNotificationStore();
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
   const [editingCommentId, setEditingCommentId] = useState<string | null>(null);
   const [editCommentText, setEditCommentText] = useState('');
   const [menuPosition, setMenuPosition] = useState<Record<string, 'up' | 'down'>>({});
+  const [localComments, setLocalComments] = useState<CommentLikeState[] | null>(null);
 
-  // Close menu when clicking outside is handled in parent or globally, 
-  // but for simplicity we can handle local click outside or just rely on state.
-  // The useEffect for click outside was in Page.tsx. We might want to move it here or use a hook.
+  const displayComments = localComments ?? comments;
 
   React.useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (openMenuId) {
-        // This is a bit tricky without refs to all menus. 
-        // Simplest is to close if clicking anywhere else.
-        // But clicks inside the menu shouldn't close it.
-        // Since CommentItem handles the menu rendering and has refs, we might need to lift refs up or rely on bubbling.
-        // For now, let's just rely on the button click toggling.
-        // Real click-outside requires a shared ref or event listener.
-        // We'll leave it for now or implement a simple document listener that closes all menus.
-        setOpenMenuId(null);
-      }
+    setLocalComments(null);
+  }, [comments]);
+
+  React.useEffect(() => {
+    const handleClickOutside = () => {
+      if (openMenuId) setOpenMenuId(null);
     };
     if (openMenuId) {
-      // Add a small delay or ensure it doesn't trigger immediately on the opening click
       setTimeout(() => document.addEventListener('click', handleClickOutside), 0);
     }
     return () => document.removeEventListener('click', handleClickOutside);
   }, [openMenuId]);
-
 
   const handleDelete = async (commentId: string) => {
     if (!catchId) return;
@@ -59,7 +55,7 @@ export const CommentsList: React.FC<CommentsListProps> = ({
         method: 'DELETE',
         credentials: 'include',
       });
-        if (response.ok) {
+      if (response.ok) {
         onCommentsChange();
         const refreshResponse = await fetch(`/api/catch/${catchId}/get`);
         if (refreshResponse.ok) {
@@ -114,40 +110,90 @@ export const CommentsList: React.FC<CommentsListProps> = ({
     }
   };
 
+  const handleToggleLike = async (commentId: string) => {
+    if (!catchId || !currentUserId) return;
+
+    const prev = displayComments;
+    setLocalComments(
+      prev.map((c) => {
+        if (c.id !== commentId) return c;
+        const liked = Boolean(c.likedByMe);
+        return {
+          ...c,
+          likedByMe: !liked,
+          likesCount: Math.max(0, (c.likesCount ?? 0) + (liked ? -1 : 1)),
+        };
+      }),
+    );
+
+    try {
+      const response = await fetch(`/api/catch/${catchId}/comment/${commentId}/like`, {
+        method: 'POST',
+        credentials: 'include',
+      });
+      if (!response.ok) {
+        setLocalComments(prev);
+        return;
+      }
+      const data = (await response.json()) as { likedByMe: boolean; likesCount: number };
+      setLocalComments((current) =>
+        (current ?? prev).map((c) =>
+          c.id === commentId
+            ? { ...c, likedByMe: data.likedByMe, likesCount: data.likesCount }
+            : c,
+        ),
+      );
+      onCommentLiked?.();
+    } catch {
+      setLocalComments(prev);
+    }
+  };
+
+  const roots = displayComments.filter((c) => !c.parentId);
+  const repliesByParent = displayComments.reduce<Record<string, CommentLikeState[]>>((acc, c) => {
+    if (!c.parentId) return acc;
+    if (!acc[c.parentId]) acc[c.parentId] = [];
+    acc[c.parentId].push(c);
+    return acc;
+  }, {});
+
+  const renderComment = (comment: CommentLikeState, isReply = false) => (
+    <div key={comment.id} className="space-y-3">
+      <CommentItem
+        comment={comment}
+        currentUserId={currentUserId}
+        openMenuId={openMenuId}
+        setOpenMenuId={setOpenMenuId}
+        setEditingCommentId={setEditingCommentId}
+        setEditCommentText={setEditCommentText}
+        menuPosition={menuPosition}
+        setMenuPosition={setMenuPosition}
+        onDelete={handleDelete}
+        onUpdate={handleUpdate}
+        onReply={onReply}
+        onToggleLike={handleToggleLike}
+        isEditing={editingCommentId === comment.id}
+        editCommentText={editCommentText}
+        dict={dict}
+        isReply={isReply}
+      />
+      {(repliesByParent[comment.id] || []).map((reply) => renderComment(reply, true))}
+    </div>
+  );
+
   return (
     <div className="space-y-4">
-
       {loadingComments ? (
         <div className="text-center py-4 text-zinc-500">
-          <div className="w-6 h-6 border-2 border-blue-400 border-t-transparent rounded-full animate-spin mx-auto"></div>
+          <div className="w-6 h-6 border-2 border-blue-400 border-t-transparent rounded-full animate-spin mx-auto" />
         </div>
-      ) : comments.length === 0 ? (
+      ) : displayComments.length === 0 ? (
         <div className="text-center py-8 text-zinc-500 text-sm">
           {dict.beFirstToComment || 'Be the first to comment!'}
         </div>
       ) : (
-        <div className="space-y-4">
-          {comments.map((comment, index) => (
-            <CommentItem
-              key={comment.id || `comment-${index}`}
-              comment={comment}
-              currentUserId={currentUserId}
-              openMenuId={openMenuId}
-              setOpenMenuId={setOpenMenuId}
-              setEditingCommentId={setEditingCommentId}
-              setEditCommentText={setEditCommentText}
-              menuPosition={menuPosition}
-              setMenuPosition={setMenuPosition}
-              onDelete={handleDelete}
-              onUpdate={handleUpdate}
-              isEditing={editingCommentId === comment.id}
-              editCommentText={editCommentText}
-              dict={dict}
-            />
-          ))}
-        </div>
+        <div className="space-y-4">{roots.map((comment) => renderComment(comment))}</div>
       )}
     </div>
   );
 };
-

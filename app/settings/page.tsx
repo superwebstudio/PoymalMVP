@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState, useRef } from 'react';
 import { BottomNav } from '@/components/BottomNav';
-import { Globe, Info, User as UserIcon, Trash2, AlertTriangle, Bug, Bookmark, Heart, X, Image as ImageIcon, Bell, LogOut, MessageCircle, Camera, AtSign, Download } from 'lucide-react';
+import { Globe, Info, Trash2, AlertTriangle, Bug, Bookmark, Heart, X, Image as ImageIcon, Bell, LogOut, MessageCircle, Camera, AtSign, Download } from 'lucide-react';
 import { LanguageToggle } from '@/components/LanguageToggle';
 import { useI18n } from '@/lib/useI18n';
 import { TelegramBackButton } from '@/components/TelegramBackButton';
@@ -324,7 +324,7 @@ export default function SettingsPage() {
         <h1 className="text-xl font-bold text-zinc-200">{dict.settings}</h1>
       </header>
 
-      <div className="p-4 space-y-6">
+      <div className="space-y-6 p-4 pb-[calc(7rem+env(safe-area-inset-bottom))]">
         {/* Profile Section */}
         <div className="space-y-2">
           <h3 className="text-sm font-semibold text-zinc-500 uppercase tracking-wide px-2">
@@ -511,26 +511,6 @@ export default function SettingsPage() {
           <h3 className="text-sm font-semibold text-zinc-500 uppercase tracking-wide px-2">{dict.privacy}</h3>
 
           <div className="bg-zinc-900 border border-zinc-800 rounded-lg divide-y divide-zinc-800">
-            <div className="flex items-center justify-between p-4">
-              <div className="flex items-center gap-3">
-                <UserIcon className="text-zinc-400" size={20} />
-                <span className="text-zinc-200">{dict.showTelegramHandle}</span>
-              </div>
-              <label className="relative inline-flex items-center cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={preferences?.showTelegramHandle !== undefined ? preferences.showTelegramHandle : true}
-                  disabled={loadingPreferences}
-                  onChange={(e) => {
-                    e.stopPropagation();
-                    const newValue = e.target.checked;
-                    updatePreference('showTelegramHandle', newValue).catch(console.error);
-                  }}
-                  className="sr-only peer"
-                />
-                <div className="w-11 h-6 bg-zinc-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-600"></div>
-              </label>
-            </div>
             <div className="flex items-center justify-between p-4">
               <div className="flex items-center gap-3">
                 <Globe className="text-zinc-400" size={20} />

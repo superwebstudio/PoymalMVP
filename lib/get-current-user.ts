@@ -37,7 +37,6 @@ export async function getCurrentUser() {
         notificationsEnabled: true,
         notifyOnLikes: true,
         notifyOnComments: true,
-        showTelegramHandle: true,
         showCountryBadge: true,
         catchViewMode: true,
       },

@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { useI18n } from '@/lib/useI18n';
-import { Settings, Lock, Bell, Camera } from 'lucide-react';
+import { Settings, Bell, Camera } from 'lucide-react';
 import Link from 'next/link';
 import { useRef, useState } from 'react';
 import { UserStats } from '@/components/UserStats';
@@ -59,9 +59,6 @@ export function ProfilePageContent() {
 
     // Use preferences from store for current user's own profile
     const isOwnProfile = userId === user.id;
-    const showTelegramHandle = isOwnProfile 
-        ? (preferences?.showTelegramHandle ?? user.showTelegramHandle ?? true)
-        : (user.showTelegramHandle ?? true);
     const showCountryBadge = isOwnProfile
         ? (preferences?.showCountryBadge ?? user.showCountryBadge ?? true)
         : (user.showCountryBadge ?? true);
@@ -203,13 +200,7 @@ export function ProfilePageContent() {
                             )}
                         </div>
                         {user.username && (
-                            showTelegramHandle ? (
-                                <p className="text-zinc-500 text-sm">@{user.username}</p>
-                            ) : (
-                                <p className="text-zinc-500 text-sm flex items-center gap-1">
-                                    <Lock size={12} className="text-zinc-600" /> Hidden
-                                </p>
-                            )
+                            <p className="text-zinc-500 text-sm">@{user.username}</p>
                         )}
 
                         <div className="flex gap-4 mt-3 text-sm">

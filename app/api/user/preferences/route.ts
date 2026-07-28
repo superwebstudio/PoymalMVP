@@ -28,7 +28,6 @@ export async function POST(req: NextRequest) {
     }
 
     const {
-      showTelegramHandle,
       showCountryBadge,
       notificationsEnabled,
       notifyOnLikes,
@@ -37,9 +36,6 @@ export async function POST(req: NextRequest) {
 
     const updateData: Record<string, unknown> = {};
 
-    if (showTelegramHandle !== undefined) {
-      updateData.showTelegramHandle = showTelegramHandle;
-    }
     if (showCountryBadge !== undefined) {
       updateData.showCountryBadge = showCountryBadge;
     }
@@ -67,7 +63,6 @@ export async function POST(req: NextRequest) {
       data: updateData,
       select: {
         id: true,
-        showTelegramHandle: true,
         showCountryBadge: true,
         country: true,
         notificationsEnabled: true,

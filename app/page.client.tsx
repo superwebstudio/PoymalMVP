@@ -50,10 +50,11 @@ export default function HomePageClient({ initialFeed, initialUser }: HomePageCli
             if (pendingFeedRefresh) {
                 // Fresh client feed from post submit — don't clobber with stale SSR cache
                 useFeedStore.setState({ pendingFeedRefresh: false, loading: false });
-            } else if (Array.isArray(initialFeed)) {
+            } else if (Array.isArray(initialFeed) && initialFeed.length > 0) {
                 useFeedStore.setState({ feed: initialFeed, loading: false, feedType: 'all' });
             } else {
-                useFeedStore.setState({ feed: [], loading: false, feedType: 'all' });
+                // SSR empty/failed — fetch client-side (same path as All tab)
+                void fetchFeed('all');
             }
 
             if (initialUser) {
@@ -65,7 +66,7 @@ export default function HomePageClient({ initialFeed, initialUser }: HomePageCli
             }
             initializedRef.current = true;
         }
-    }, [initialFeed, initialUser]);
+    }, [initialFeed, initialUser, fetchFeed]);
 
     const { scrollY } = useScroll();
     const scrollYBounded = useMotionValue(0);

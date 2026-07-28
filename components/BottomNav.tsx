@@ -42,6 +42,7 @@ export const BottomNav = ({
   const longPressTimerRef = useRef<NodeJS.Timeout | null>(null);
   const isHomePage = pathname === '/';
   const isFeedPage = pathname === '/' || pathname.startsWith('/feed') || pathname.startsWith('/news') || pathname.startsWith('/leaderboard');
+  const isSearchPage = pathname.startsWith('/search');
   const homeButtonRef = useRef<HTMLButtonElement>(null);
 
   const feedType = propFeedType || storeFeedType;
@@ -581,11 +582,11 @@ export const BottomNav = ({
           height: 'calc(60px + max(2rem, calc(env(safe-area-inset-bottom) + 1rem)))',
           justifyContent: 'space-between',
           gap: '1.5rem',
-          transform: (isFocused || !isVisible)
+          transform: ((!isSearchPage && isFocused) || !isVisible)
             ? 'translateY(100%)'
             : undefined,
           transition: 'transform 0.2s ease-out',
-          pointerEvents: (isFocused || !isVisible) ? 'none' : 'auto',
+          pointerEvents: ((!isSearchPage && isFocused) || !isVisible) ? 'none' : 'auto',
           willChange: 'transform',
         }}
       >

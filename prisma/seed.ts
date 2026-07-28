@@ -25,7 +25,6 @@ async function main() {
       isAdmin: true,
       language: 'en',
       aiUsageCount: 5,
-      showTelegramHandle: true,
       catchViewMode: 'grid',
     },
   });
@@ -40,7 +39,6 @@ async function main() {
       isPro: false,
       language: 'ru',
       aiUsageCount: 0,
-      showTelegramHandle: true,
       catchViewMode: 'list',
     },
   });
@@ -55,7 +53,6 @@ async function main() {
       isPro: false,
       language: 'ru',
       aiUsageCount: 1,
-      showTelegramHandle: false,
       catchViewMode: 'grid',
     },
   });

@@ -21,7 +21,6 @@ model User {
   country   String? // User's country
 
   // Display preferences
-  showTelegramHandle Boolean @default(true)
   showCountryBadge   Boolean @default(true)
   catchViewMode      String  @default("grid") // "grid" or "list"
   notificationsEnabled Boolean @default(true)
@@ -51,6 +50,7 @@ model User {
   likes         Like[]
   reactions     Reaction[]
   comments      Comment[]
+  commentLikes  CommentLike[]
   notifications Notification[]
   transactions  Transaction[]
 
@@ -170,13 +170,32 @@ model Comment {
   id        String   @id @default(uuid())
   userId    String
   catchId   String
+  parentId  String?
   content   String
   createdAt DateTime @default(now())
 
-  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
-  catch Catch @relation(fields: [catchId], references: [id], onDelete: Cascade)
+  user    User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  catch   Catch         @relation(fields: [catchId], references: [id], onDelete: Cascade)
+  parent  Comment?      @relation("CommentReplies", fields: [parentId], references: [id], onDelete: Cascade)
+  replies Comment[]     @relation("CommentReplies")
+  likes   CommentLike[]
 
   @@index([catchId])
+  @@index([catchId, parentId])
+  @@index([parentId])
+}
+
+model CommentLike {
+  id        String   @id @default(uuid())
+  userId    String
+  commentId String
+  createdAt DateTime @default(now())
+
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  comment Comment @relation(fields: [commentId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, commentId])
+  @@index([commentId])
 }
 
 model Follow {

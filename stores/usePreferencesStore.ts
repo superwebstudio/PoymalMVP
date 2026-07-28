@@ -3,7 +3,6 @@ import { persist, createJSONStorage } from 'zustand/middleware';
 import { useUserStore } from './useUserStore';
 
 interface UserPreferences {
-  showTelegramHandle: boolean;
   showCountryBadge: boolean;
   country: string | null;
   notificationsEnabled: boolean;
@@ -35,7 +34,6 @@ interface PreferencesStore {
 }
 
 const preferenceKeys: (keyof UserPreferences)[] = [
-  'showTelegramHandle',
   'showCountryBadge',
   'country',
   'notificationsEnabled',
@@ -47,7 +45,6 @@ export const usePreferencesStore = create<PreferencesStore>()(
   persist(
     (set, get) => ({
       preferences: {
-        showTelegramHandle: true,
         showCountryBadge: true,
         country: null,
         notificationsEnabled: true,
@@ -134,7 +131,6 @@ export const usePreferencesStore = create<PreferencesStore>()(
 
           const userData = await response.json();
           const prefs: UserPreferences = {
-            showTelegramHandle: userData.showTelegramHandle ?? true,
             showCountryBadge: userData.showCountryBadge ?? true,
             country: userData.country || null,
             notificationsEnabled: userData.notificationsEnabled ?? true,

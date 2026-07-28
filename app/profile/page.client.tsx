@@ -3,7 +3,7 @@
 import React, { useEffect, useRef } from 'react';
 import { BottomNav } from '@/components/BottomNav';
 import { useI18n } from '@/lib/useI18n';
-import { Settings, Lock, Gift } from 'lucide-react';
+import { Settings, Gift } from 'lucide-react';
 import Link from 'next/link';
 import { UserStats } from '@/components/UserStats';
 import { UserCatches } from '@/components/UserCatches';
@@ -23,7 +23,6 @@ interface ProfilePageClientProps {
         photoUrl?: string | null;
         isPro?: boolean;
         country?: string | null;
-        showTelegramHandle?: boolean | null;
         showCountryBadge?: boolean | null;
         catches?: Array<{
             id: string;
@@ -84,9 +83,6 @@ export default function ProfilePageClient({ initialUser }: ProfilePageClientProp
     }
 
     const isOwnProfile = userId === displayUser.id;
-    const showTelegramHandle = isOwnProfile
-        ? (preferences?.showTelegramHandle ?? displayUser.showTelegramHandle ?? true)
-        : (displayUser.showTelegramHandle ?? true);
     const showCountryBadge = isOwnProfile
         ? (preferences?.showCountryBadge ?? displayUser.showCountryBadge ?? true)
         : (displayUser.showCountryBadge ?? true);
@@ -138,13 +134,7 @@ export default function ProfilePageClient({ initialUser }: ProfilePageClientProp
                             </div>
                         </div>
                         {displayUser.username && (
-                            showTelegramHandle ? (
-                                <p className="text-zinc-500 text-sm">@{displayUser.username}</p>
-                            ) : (
-                                <p className="text-zinc-500 text-sm flex items-center gap-1">
-                                    <Lock size={12} className="text-zinc-600" /> {dict.hideTelegramHandle || 'Hidden'}
-                                </p>
-                            )
+                            <p className="text-zinc-500 text-sm">@{displayUser.username}</p>
                         )}
                         {!displayUser.isPro && (
                             <Link

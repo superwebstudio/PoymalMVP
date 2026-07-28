@@ -145,6 +145,7 @@ export type UpdateCatchInput = z.infer<typeof updateCatchSchema>;
 
 export const createCommentSchema = z.object({
   content: safeString(2000).min(1, 'Comment cannot be empty'),
+  parentId: z.string().uuid().nullable().optional(),
 });
 
 export const updateCommentSchema = z.object({
@@ -189,7 +190,6 @@ export type UpdateSavedLocationInput = z.infer<typeof updateSavedLocationSchema>
 
 export const userPreferencesSchema = z.object({
   language: z.enum(['en', 'ru', 'es', 'de', 'fr', 'pt', 'it', 'uk']).optional(),
-  showTelegramHandle: z.boolean().optional(),
   showCountryBadge: z.boolean().optional(),
   catchViewMode: z.enum(['grid', 'list']).optional(),
   notificationsEnabled: z.boolean().optional(),

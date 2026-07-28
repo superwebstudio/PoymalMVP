@@ -1,11 +1,27 @@
 import React, { useRef, useState } from 'react';
 import Link from 'next/link';
-import { MoreHorizontal, Edit, Trash2 } from 'lucide-react';
+import { Heart, MoreHorizontal, Edit, Trash2, Reply } from 'lucide-react';
 import { CachedImage } from '@/components/CachedImage';
 import { ConfirmDialog } from '@/components/ConfirmDialog';
 
+export type CommentLikeState = {
+  id: string;
+  content: string;
+  createdAt: string;
+  parentId?: string | null;
+  likesCount?: number;
+  likedByMe?: boolean;
+  user: {
+    id: string;
+    firstName?: string | null;
+    username?: string | null;
+    photoUrl?: string | null;
+    isPro?: boolean;
+  };
+};
+
 interface CommentItemProps {
-  comment: any;
+  comment: CommentLikeState;
   currentUserId: string | null | undefined;
   openMenuId: string | null;
   setOpenMenuId: (id: string | null) => void;
@@ -15,9 +31,12 @@ interface CommentItemProps {
   setMenuPosition: (pos: Record<string, 'up' | 'down'>) => void;
   onDelete: (id: string) => void;
   onUpdate: (id: string, text: string) => void;
+  onReply?: (comment: CommentLikeState) => void;
+  onToggleLike?: (commentId: string) => void;
   isEditing: boolean;
   editCommentText: string;
-  dict: any;
+  dict: Record<string, string>;
+  isReply?: boolean;
 }
 
 export const CommentItem: React.FC<CommentItemProps> = ({
@@ -31,9 +50,12 @@ export const CommentItem: React.FC<CommentItemProps> = ({
   setMenuPosition,
   onDelete,
   onUpdate,
+  onReply,
+  onToggleLike,
   isEditing,
   editCommentText,
   dict,
+  isReply = false,
 }) => {
   const isCommentOwner = comment.user.id === currentUserId;
   const menuRef = useRef<HTMLDivElement>(null);
@@ -41,56 +63,44 @@ export const CommentItem: React.FC<CommentItemProps> = ({
   const commentRef = useRef<HTMLDivElement>(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
-  // Scroll into view when editing starts, accounting for keyboard
   React.useEffect(() => {
     if (isEditing && commentRef.current) {
-      // Wait for keyboard to open and edit UI to render
       const scrollToComment = () => {
         if (!commentRef.current) return;
-        
+
         const element = commentRef.current;
         const viewportHeight = window.innerHeight;
-        
-        // Use Visual Viewport API if available (most accurate for keyboard detection)
-        const visualViewport = (window as any).visualViewport;
+        const visualViewport = window.visualViewport;
         let availableHeight = viewportHeight;
         let offsetY = 0;
-        
+
         if (visualViewport) {
-          // Visual viewport gives us the actual visible area
           availableHeight = visualViewport.height;
           offsetY = visualViewport.offsetTop;
         } else {
-          // Fallback: estimate keyboard height (typically 300-400px on mobile)
           const estimatedKeyboardHeight = Math.min(viewportHeight * 0.4, 400);
           availableHeight = viewportHeight - estimatedKeyboardHeight;
         }
-        
-        // Get element position relative to document
+
         const elementRect = element.getBoundingClientRect();
         const absoluteElementTop = elementRect.top + window.pageYOffset + offsetY;
-        
-        // Position comment in upper portion of visible area (above keyboard)
-        // Target: position comment at 25% from top of visible viewport
-        const targetPosition = absoluteElementTop - (availableHeight * 0.25);
-        
+        const targetPosition = absoluteElementTop - availableHeight * 0.25;
+
         window.scrollTo({
           top: Math.max(0, targetPosition),
-          behavior: 'smooth'
+          behavior: 'smooth',
         });
       };
-      
-      // Initial scroll after short delay
+
       setTimeout(scrollToComment, 200);
-      
-      // Also listen for visual viewport resize (keyboard opening/closing)
-      if ((window as any).visualViewport) {
+
+      if (window.visualViewport) {
         const handleResize = () => {
           setTimeout(scrollToComment, 100);
         };
-        (window as any).visualViewport.addEventListener('resize', handleResize);
+        window.visualViewport.addEventListener('resize', handleResize);
         return () => {
-          (window as any).visualViewport?.removeEventListener('resize', handleResize);
+          window.visualViewport?.removeEventListener('resize', handleResize);
         };
       }
     }
@@ -100,14 +110,24 @@ export const CommentItem: React.FC<CommentItemProps> = ({
     const parts = content.split(/(@\w+)/g);
     return parts.map((part, i) => {
       if (part.startsWith('@')) {
-        return <span key={i} className="text-blue-400 font-medium">{part}</span>;
+        return (
+          <span key={i} className="text-blue-400 font-medium">
+            {part}
+          </span>
+        );
       }
       return <span key={i}>{part}</span>;
     });
   };
 
+  const likesCount = comment.likesCount ?? 0;
+  const likedByMe = Boolean(comment.likedByMe);
+
   return (
-    <div ref={commentRef} className="flex gap-3">
+    <div
+      ref={commentRef}
+      className={`flex gap-3 ${isReply ? 'ml-8 border-l border-zinc-800 pl-3' : ''}`}
+    >
       <Link href={`/user/${comment.user.id}`} className="flex-shrink-0">
         <div className="w-10 h-10 rounded-full bg-zinc-800 overflow-hidden">
           {comment.user.photoUrl ? (
@@ -125,7 +145,10 @@ export const CommentItem: React.FC<CommentItemProps> = ({
       </Link>
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2 mb-1">
-          <Link href={`/user/${comment.user.id}`} className="font-semibold text-zinc-200 hover:text-blue-400 text-sm">
+          <Link
+            href={`/user/${comment.user.id}`}
+            className="font-semibold text-zinc-200 hover:text-blue-400 text-sm"
+          >
             {comment.user.firstName || comment.user.username || 'User'}
           </Link>
           {comment.user.isPro && (
@@ -140,6 +163,7 @@ export const CommentItem: React.FC<CommentItemProps> = ({
             <div className="relative ml-auto" ref={menuRef}>
               <button
                 ref={buttonRef}
+                type="button"
                 onClick={(e) => {
                   e.stopPropagation();
                   if (openMenuId === comment.id) {
@@ -153,7 +177,10 @@ export const CommentItem: React.FC<CommentItemProps> = ({
                       const spaceAbove = rect.top;
                       const isNearBottom = rect.bottom > window.innerHeight * 0.7;
 
-                      if ((spaceBelow < menuHeight && spaceAbove > menuHeight) || (isNearBottom && spaceAbove > menuHeight)) {
+                      if (
+                        (spaceBelow < menuHeight && spaceAbove > menuHeight) ||
+                        (isNearBottom && spaceAbove > menuHeight)
+                      ) {
                         setMenuPosition({ ...menuPosition, [comment.id]: 'up' });
                       } else {
                         setMenuPosition({ ...menuPosition, [comment.id]: 'down' });
@@ -167,8 +194,13 @@ export const CommentItem: React.FC<CommentItemProps> = ({
                 <MoreHorizontal size={16} />
               </button>
               {openMenuId === comment.id && (
-                <div className={`absolute right-0 w-40 bg-zinc-800 border border-zinc-700 rounded-lg shadow-lg z-50 overflow-hidden ${menuPosition[comment.id] === 'up' ? 'bottom-full mb-1' : 'top-full mt-1'}`}>
+                <div
+                  className={`absolute right-0 w-40 bg-zinc-800 border border-zinc-700 rounded-lg shadow-lg z-50 overflow-hidden ${
+                    menuPosition[comment.id] === 'up' ? 'bottom-full mb-1' : 'top-full mt-1'
+                  }`}
+                >
                   <button
+                    type="button"
                     onClick={(e) => {
                       e.stopPropagation();
                       setEditingCommentId(comment.id);
@@ -181,6 +213,7 @@ export const CommentItem: React.FC<CommentItemProps> = ({
                     <span>{dict.edit || 'Edit'}</span>
                   </button>
                   <button
+                    type="button"
                     onClick={(e) => {
                       e.stopPropagation();
                       setOpenMenuId(null);
@@ -207,12 +240,14 @@ export const CommentItem: React.FC<CommentItemProps> = ({
             />
             <div className="flex gap-2">
               <button
+                type="button"
                 onClick={() => onUpdate(comment.id, editCommentText)}
                 className="px-3 py-1 bg-sky-600 hover:bg-sky-500 text-white rounded text-sm"
               >
                 Save
               </button>
               <button
+                type="button"
                 onClick={() => {
                   setEditingCommentId(null);
                   setEditCommentText('');
@@ -224,9 +259,33 @@ export const CommentItem: React.FC<CommentItemProps> = ({
             </div>
           </div>
         ) : (
-          <p className="text-zinc-300 text-sm">
-            {formatCommentContent(comment.content)}
-          </p>
+          <>
+            <p className="text-zinc-300 text-sm">{formatCommentContent(comment.content)}</p>
+            <div className="mt-2 flex items-center gap-3">
+              {onToggleLike && currentUserId && (
+                <button
+                  type="button"
+                  onClick={() => onToggleLike(comment.id)}
+                  className={`flex items-center gap-1 text-xs transition-colors ${
+                    likedByMe ? 'text-red-400' : 'text-zinc-500 hover:text-red-400'
+                  }`}
+                >
+                  <Heart size={14} className={likedByMe ? 'fill-red-400' : ''} />
+                  {likesCount > 0 && <span>{likesCount}</span>}
+                </button>
+              )}
+              {onReply && currentUserId && (
+                <button
+                  type="button"
+                  onClick={() => onReply(comment)}
+                  className="flex items-center gap-1 text-xs text-zinc-500 hover:text-zinc-300"
+                >
+                  <Reply size={12} />
+                  {dict.reply || 'Reply'}
+                </button>
+              )}
+            </div>
+          </>
         )}
       </div>
       <ConfirmDialog
@@ -245,4 +304,3 @@ export const CommentItem: React.FC<CommentItemProps> = ({
     </div>
   );
 };
-

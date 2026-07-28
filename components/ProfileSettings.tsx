@@ -90,24 +90,6 @@ export const ProfileSettings: React.FC<ProfileSettingsProps> = ({ currentLanguag
                 </div>
               </div>
 
-              {/* Show Telegram Handle Toggle */}
-              <div className="flex items-center justify-between p-3 bg-zinc-800/50 rounded-lg border border-zinc-800">
-                <div className="flex items-center gap-3">
-                  <Shield className="text-blue-500" size={20} />
-                  <span className="text-zinc-200">{dict.showTelegramHandle || 'Show Telegram Handle'}</span>
-                </div>
-                <label className="relative inline-flex items-center cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={preferences?.showTelegramHandle ?? true}
-                    disabled={loadingPreferences}
-                    onChange={(e) => updatePreference('showTelegramHandle', e.target.checked)}
-                    className="sr-only peer"
-                  />
-                  <div className="w-11 h-6 bg-zinc-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-600"></div>
-                </label>
-              </div>
-
               {/* Show Country Badge Toggle */}
               <div className="flex items-center justify-between p-3 bg-zinc-800/50 rounded-lg border border-zinc-800">
                 <div className="flex items-center gap-3">

@@ -43,7 +43,6 @@ export type User = {
         followers: number;
         following: number;
     };
-    showTelegramHandle?: boolean;
     showCountryBadge?: boolean;
     catchViewMode?: string;
     proExpiresAt?: Date | string;

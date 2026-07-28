@@ -1,14 +1,7 @@
 import { Suspense } from 'react';
-import { unstable_cache } from 'next/cache';
 import { getFeed } from '@/app/api/feed/_service';
 import { getCurrentUserSummary } from '@/lib/get-current-user-summary';
 import HomePageClient from './page.client';
-
-const getCachedPublicFeed = unstable_cache(
-  async () => getFeed(undefined, 'all'),
-  ['home-public-feed-v1'],
-  { revalidate: 60, tags: ['feed'] },
-);
 
 function HomeFallback(): React.JSX.Element {
   return (
@@ -19,9 +12,9 @@ function HomeFallback(): React.JSX.Element {
 }
 
 async function HomeContent(): Promise<React.JSX.Element> {
-  // Feed is cacheable; user is per-request (cookies). Keep them parallel.
+  // Avoid caching empty/failed feeds — client also refetches if SSR is empty
   const [initialFeed, initialUser] = await Promise.all([
-    getCachedPublicFeed(),
+    getFeed(undefined, 'all'),
     getCurrentUserSummary(),
   ]);
 

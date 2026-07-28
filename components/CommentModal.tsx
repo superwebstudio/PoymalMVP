@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from 'react';
-import { X, Send, Reply, Trash2 } from 'lucide-react';
+import { X, Send, Reply, Trash2, Heart } from 'lucide-react';
 import { Sheet } from 'react-modal-sheet';
 import { useI18n } from '@/lib/useI18n';
 import Link from 'next/link';
@@ -40,6 +40,8 @@ interface Comment {
     isPro?: boolean;
   };
   parentId?: string | null;
+  likesCount?: number;
+  likedByMe?: boolean;
 }
 
 export const CommentModal: React.FC<CommentModalProps> = ({
@@ -66,6 +68,11 @@ export const CommentModal: React.FC<CommentModalProps> = ({
   const hasScrolledRef = useRef(false);
   const isInitialLoadRef = useRef(true);
   const [deletingCommentId, setDeletingCommentId] = useState<string | null>(null);
+
+  useEffect(() => {
+    setReplyingToCommentId(initialReplyingToCommentId);
+    setReplyingToUser(initialReplyingToUser);
+  }, [initialReplyingToCommentId, initialReplyingToUser, isOpen]);
 
   useEffect(() => {
     if (isOpen && catchId) {
@@ -107,7 +114,9 @@ export const CommentModal: React.FC<CommentModalProps> = ({
   const fetchComments = async () => {
     try {
       setLoadingComments(true);
-      const response = await fetch(`/api/catch/${catchId}/comment`);
+      const response = await fetch(`/api/catch/${catchId}/comment`, {
+        credentials: 'include',
+      });
       if (response.ok) {
         const data = await response.json();
         setComments(data);
@@ -163,6 +172,7 @@ export const CommentModal: React.FC<CommentModalProps> = ({
         credentials: 'include',
         body: JSON.stringify({
           content,
+          parentId: replyingToCommentId,
         }),
       });
 
@@ -227,6 +237,44 @@ export const CommentModal: React.FC<CommentModalProps> = ({
       });
     } finally {
       setDeletingCommentId(null);
+    }
+  };
+
+  const handleToggleLike = async (commentId: string) => {
+    if (!currentUserId) return;
+
+    const prev = comments;
+    setComments((list) =>
+      list.map((c) => {
+        if (c.id !== commentId) return c;
+        const liked = Boolean(c.likedByMe);
+        return {
+          ...c,
+          likedByMe: !liked,
+          likesCount: Math.max(0, (c.likesCount ?? 0) + (liked ? -1 : 1)),
+        };
+      }),
+    );
+
+    try {
+      const response = await fetch(`/api/catch/${catchId}/comment/${commentId}/like`, {
+        method: 'POST',
+        credentials: 'include',
+      });
+      if (!response.ok) {
+        setComments(prev);
+        return;
+      }
+      const data = (await response.json()) as { likedByMe: boolean; likesCount: number };
+      setComments((list) =>
+        list.map((c) =>
+          c.id === commentId
+            ? { ...c, likedByMe: data.likedByMe, likesCount: data.likesCount }
+            : c,
+        ),
+      );
+    } catch {
+      setComments(prev);
     }
   };
 
@@ -313,69 +361,96 @@ export const CommentModal: React.FC<CommentModalProps> = ({
                     </div>
                   ) : (
                     <div className="space-y-4 pb-4">
-                      {comments.map((commentItem) => (
-                        <div key={commentItem.id} className="flex gap-3">
-                          <Link href={`/user/${commentItem.user.id}`} className="flex-shrink-0">
-                            <div className="w-10 h-10 rounded-full bg-zinc-800 overflow-hidden">
-                              {commentItem.user.photoUrl ? (
-                                <CachedImage
-                                  src={commentItem.user.photoUrl}
-                                  alt=""
-                                  className="h-full w-full"
-                                  sizes="40px"
-                                />
-                              ) : (
-                                <div className="w-full h-full flex items-center justify-center text-zinc-500 text-sm">
-                                  {commentItem.user.firstName?.[0] || commentItem.user.username?.[0] || '?'}
-                                </div>
-                              )}
-                            </div>
-                          </Link>
-                          <div className="relative min-w-0 flex-1">
-                            <div className="mb-1 flex items-center gap-2 pr-8">
-                              <Link href={`/user/${commentItem.user.id}`} className="text-sm font-semibold text-zinc-200">
-                                {commentItem.user.firstName || commentItem.user.username || 'User'}
-                              </Link>
-                              {commentItem.user.isPro && (
-                                <span className="rounded border border-yellow-500/30 bg-yellow-500/20 px-1.5 py-0.5 text-[10px] text-yellow-400">
-                                  PRO
+                      {comments.filter((c) => !c.parentId).map((commentItem) => {
+                        const replies = comments.filter((c) => c.parentId === commentItem.id);
+                        const renderRow = (item: Comment, isReply = false) => (
+                          <div
+                            key={item.id}
+                            className={`flex gap-3 ${isReply ? 'ml-8 border-l border-zinc-800 pl-3' : ''}`}
+                          >
+                            <Link href={`/user/${item.user.id}`} className="flex-shrink-0">
+                              <div className="w-10 h-10 rounded-full bg-zinc-800 overflow-hidden">
+                                {item.user.photoUrl ? (
+                                  <CachedImage
+                                    src={item.user.photoUrl}
+                                    alt=""
+                                    className="h-full w-full"
+                                    sizes="40px"
+                                  />
+                                ) : (
+                                  <div className="w-full h-full flex items-center justify-center text-zinc-500 text-sm">
+                                    {item.user.firstName?.[0] || item.user.username?.[0] || '?'}
+                                  </div>
+                                )}
+                              </div>
+                            </Link>
+                            <div className="relative min-w-0 flex-1">
+                              <div className="mb-1 flex items-center gap-2 pr-8">
+                                <Link href={`/user/${item.user.id}`} className="text-sm font-semibold text-zinc-200">
+                                  {item.user.firstName || item.user.username || 'User'}
+                                </Link>
+                                {item.user.isPro && (
+                                  <span className="rounded border border-yellow-500/30 bg-yellow-500/20 px-1.5 py-0.5 text-[10px] text-yellow-400">
+                                    PRO
+                                  </span>
+                                )}
+                                <span className="text-xs text-zinc-500">
+                                  {new Date(item.createdAt).toLocaleDateString()}
                                 </span>
-                              )}
-                              <span className="text-xs text-zinc-500">
-                                {new Date(commentItem.createdAt).toLocaleDateString()}
-                              </span>
-                              {currentUserId && commentItem.user.id === currentUserId && (
-                                <button
-                                  type="button"
-                                  onClick={() => handleDeleteComment(commentItem.id)}
-                                  disabled={deletingCommentId === commentItem.id}
-                                  aria-label={dict.delete || 'Delete'}
-                                  className="absolute top-0 right-0 rounded-full p-1 text-zinc-500 transition-colors hover:bg-red-500/10 hover:text-red-400 disabled:opacity-50"
-                                >
-                                  {deletingCommentId === commentItem.id ? (
-                                    <div className="h-3.5 w-3.5 animate-spin rounded-full border border-zinc-500 border-t-transparent" />
-                                  ) : (
-                                    <Trash2 size={14} />
-                                  )}
-                                </button>
-                              )}
+                                {currentUserId && item.user.id === currentUserId && (
+                                  <button
+                                    type="button"
+                                    onClick={() => handleDeleteComment(item.id)}
+                                    disabled={deletingCommentId === item.id}
+                                    aria-label={dict.delete || 'Delete'}
+                                    className="absolute top-0 right-0 rounded-full p-1 text-zinc-500 transition-colors hover:bg-red-500/10 hover:text-red-400 disabled:opacity-50"
+                                  >
+                                    {deletingCommentId === item.id ? (
+                                      <div className="h-3.5 w-3.5 animate-spin rounded-full border border-zinc-500 border-t-transparent" />
+                                    ) : (
+                                      <Trash2 size={14} />
+                                    )}
+                                  </button>
+                                )}
+                              </div>
+                              <p className="whitespace-pre-wrap text-sm text-zinc-300">
+                                {formatCommentContent(item.content)}
+                              </p>
+                              <div className="mt-2 flex items-center gap-3">
+                                {currentUserId && (
+                                  <button
+                                    type="button"
+                                    onClick={() => handleToggleLike(item.id)}
+                                    className={`flex items-center gap-1 text-xs transition-colors ${
+                                      item.likedByMe ? 'text-red-400' : 'text-zinc-500 hover:text-red-400'
+                                    }`}
+                                  >
+                                    <Heart size={14} className={item.likedByMe ? 'fill-red-400' : ''} />
+                                    {(item.likesCount ?? 0) > 0 && <span>{item.likesCount}</span>}
+                                  </button>
+                                )}
+                                {currentUserId && (
+                                  <button
+                                    type="button"
+                                    onClick={() => handleReply(item)}
+                                    className="flex items-center gap-1 text-xs text-zinc-500 hover:text-zinc-300"
+                                  >
+                                    <Reply size={12} />
+                                    {dict.reply || 'Reply'}
+                                  </button>
+                                )}
+                              </div>
                             </div>
-                            <p className="whitespace-pre-wrap text-sm text-zinc-300">
-                              {formatCommentContent(commentItem.content)}
-                            </p>
-                            {currentUserId && commentItem.user.id !== currentUserId && (
-                              <button
-                                type="button"
-                                onClick={() => handleReply(commentItem)}
-                                className="mt-2 flex items-center gap-1 text-xs text-zinc-500 hover:text-zinc-300"
-                              >
-                                <Reply size={12} />
-                                {dict.reply || 'Reply'}
-                              </button>
-                            )}
                           </div>
-                        </div>
-                      ))}
+                        );
+
+                        return (
+                          <div key={commentItem.id} className="space-y-3">
+                            {renderRow(commentItem)}
+                            {replies.map((reply) => renderRow(reply, true))}
+                          </div>
+                        );
+                      })}
                       <div ref={commentsEndRef} />
                     </div>
                   )}

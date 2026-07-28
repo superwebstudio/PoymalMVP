@@ -52,6 +52,12 @@ export default function CatchDetailPageClient({ catchId, initialCatchData, initi
     } = useModalStore();
 
     const [returnTo] = useState<string>(initialReturnTo);
+    const [replyingToCommentId, setReplyingToCommentId] = useState<string | null>(null);
+    const [replyingToUser, setReplyingToUser] = useState<{
+        id: string;
+        firstName?: string;
+        username?: string;
+    } | null>(null);
 
     // Prefer server data when it arrives; keep provisional feed payload for instant paint
     useEffect(() => {
@@ -203,6 +209,15 @@ export default function CatchDetailPageClient({ catchId, initialCatchData, initi
                     catchId={catchId}
                     onCommentsChange={fetchComments}
                     setCatchData={setCatchData}
+                    onReply={(comment) => {
+                        setReplyingToCommentId(comment.id);
+                        setReplyingToUser({
+                            id: comment.user.id,
+                            firstName: comment.user.firstName || undefined,
+                            username: comment.user.username || undefined,
+                        });
+                        setCommentModalOpen(true);
+                    }}
                 />
             </div>
 
@@ -232,15 +247,18 @@ export default function CatchDetailPageClient({ catchId, initialCatchData, initi
             {displayData && (
                 <CommentModal
                     isOpen={commentModalOpen}
-                    onClose={() => setCommentModalOpen(false)}
+                    onClose={() => {
+                        setCommentModalOpen(false);
+                        setReplyingToCommentId(null);
+                        setReplyingToUser(null);
+                    }}
                     catchId={displayData.id}
                     postAuthor={displayData.user}
                     currentUserId={currentUserId || undefined}
+                    replyingToCommentId={replyingToCommentId}
+                    replyingToUser={replyingToUser}
                     onCommentAdded={async () => {
-                        // Only refetch comments, update catch data optimistically
-                        // The catch data itself doesn't change when a comment is added
                         await fetchComments();
-                        // Optimistically update comment count
                         if (catchData) {
                             setCatchData({
                                 ...catchData,

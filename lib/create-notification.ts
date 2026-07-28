@@ -1,6 +1,6 @@
 import prisma from '@/lib/prisma';
 
-type CatchNotificationType = 'like' | 'comment';
+type CatchNotificationType = 'like' | 'comment' | 'comment_like';
 
 export async function createCatchNotification(params: {
   recipientId: string;
@@ -34,7 +34,7 @@ export async function createCatchNotification(params: {
   ]);
 
   if (!recipient?.notificationsEnabled || !actor) return;
-  if (type === 'like' && !recipient.notifyOnLikes) return;
+  if ((type === 'like' || type === 'comment_like') && !recipient.notifyOnLikes) return;
   if (type === 'comment' && !recipient.notifyOnComments) return;
 
   const actorName = actor.firstName || actor.username || 'Someone';
@@ -43,9 +43,11 @@ export async function createCatchNotification(params: {
   const content =
     type === 'like'
       ? `${actorName} liked your catch${species}`
-      : `${actorName} commented on your catch${species}${
-          commentPreview ? `: "${commentPreview.slice(0, 80)}"` : ''
-        }`;
+      : type === 'comment_like'
+        ? `${actorName} liked your comment`
+        : `${actorName} commented on your catch${species}${
+            commentPreview ? `: "${commentPreview.slice(0, 80)}"` : ''
+          }`;
 
   await prisma.notification.create({
     data: {
@@ -53,7 +55,7 @@ export async function createCatchNotification(params: {
       type,
       actorId,
       catchId,
-      commentId: type === 'comment' ? commentId ?? null : null,
+      commentId: type === 'comment' || type === 'comment_like' ? commentId ?? null : null,
       content,
     },
   });
@@ -107,4 +109,21 @@ export async function removeCommentNotification(params: {
       });
     }
   }
+}
+
+export async function removeCommentLikeNotification(params: {
+  actorId: string;
+  catchId: string;
+  commentId: string;
+}): Promise<void> {
+  const { actorId, catchId, commentId } = params;
+
+  await prisma.notification.deleteMany({
+    where: {
+      type: 'comment_like',
+      actorId,
+      catchId,
+      commentId,
+    },
+  });
 }

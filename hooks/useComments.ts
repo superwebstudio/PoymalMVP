@@ -8,7 +8,9 @@ export function useComments(catchId: string | null) {
     if (!catchId) return;
     try {
       setLoadingComments(true);
-      const response = await fetch(`/api/catch/${catchId}/comment`);
+      const response = await fetch(`/api/catch/${catchId}/comment`, {
+        credentials: 'include',
+      });
       if (response.ok) {
         const data = await response.json();
         setComments(data);
