@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Notifications | Ulov',
+  title: 'Notifications | Poymal',
   description: 'Likes and comments on your posts',
 };
 

@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Connections | Ulov',
+  title: 'Connections | Poymal',
   description: 'Followers and following',
 };
 

@@ -114,12 +114,12 @@ export default function ReferralsPage() {
 
     const shareText =
       dict.referralShareText ||
-      "Join me on Ulov! When you post your first catch within 7 days, we both get 7 days of Premium.";
+      "Join me on Poymal! When you post your first catch within 7 days, we both get 7 days of Premium.";
 
     if (typeof navigator !== "undefined" && typeof navigator.share === "function") {
       try {
         await navigator.share({
-          title: "Join Ulov",
+          title: "Join Poymal",
           text: shareText,
           url: data.referralLink,
         });

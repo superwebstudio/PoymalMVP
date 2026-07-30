@@ -103,7 +103,7 @@ export default function ProPage() {
                 {/* Hero Section */}
                 <div className="rounded-2xl p-6 text-center">
                     <div className="flex items-center justify-center mb-8">
-                        <img src="/logo-max.svg" alt="Ulov" />
+                        <img src="/logo-max.svg" alt="Poymal" />
                     </div>
                     <h2 className="text-2xl font-bold mb-2 flex items-center justify-center gap-2 mx-auto mt-8">
                         <span className="bg-gradient-to-r from-yellow-400 via-yellow-500 to-yellow-400 bg-clip-text text-transparent">PRO</span>

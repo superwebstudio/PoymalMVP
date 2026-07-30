@@ -82,7 +82,7 @@ export default function UserProfilePage({ params }: { params: Promise<{ id: stri
                 <div className="text-center">
                     <img
                         src="/logo-max.svg"
-                        alt="Ulov"
+                        alt="Poymal"
                         className="h-16 mx-auto mb-6 opacity-90"
                     />
                     <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4" />

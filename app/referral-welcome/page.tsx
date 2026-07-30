@@ -73,7 +73,7 @@ export default function ReferralWelcomePage() {
                     <div className="text-center">
                         <img
                             src="/logo-max.svg"
-                            alt="Ulov"
+                            alt="Poymal"
                             className="h-16 mx-auto mb-6"
                         />
                     </div>

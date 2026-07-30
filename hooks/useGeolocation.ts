@@ -68,7 +68,7 @@ export function useGeolocation(options: UseGeolocationOptions = {}) {
             try {
                 const response = await fetch(
                     `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&zoom=18&addressdetails=1`,
-                    { headers: { 'User-Agent': 'Ulov Fishing App' } }
+                    { headers: { 'User-Agent': 'Poymal Fishing App' } }
                 );
 
                 if (response.ok) {

@@ -59,7 +59,7 @@ export function AdminSidebar() {
             <div className="admin-sidebar-header">
                 <Link href="/admin" className="admin-sidebar-logo">
                     <div className="admin-sidebar-logo-icon">🎣</div>
-                    <span className="admin-sidebar-logo-text">Ulov</span>
+                    <span className="admin-sidebar-logo-text">Poymal</span>
                     <span className="admin-sidebar-logo-badge">Admin</span>
                 </Link>
             </div>

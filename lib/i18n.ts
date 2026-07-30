@@ -75,7 +75,7 @@ export const i18n = {
         showCountryBadge: "Флаг страны в профиле",
 
         // Pro
-        proTitle: "Улов PRO",
+        proTitle: "Poymal PRO",
         proDescription: "Никакой рекламы и безлимитные ИИ распознавания рыб",
         proFeature1: "Безлимитные ИИ распознавания",
         proFeature2: "Никакой рекламы",
@@ -411,7 +411,7 @@ export const i18n = {
         yourCountry: "Ваша страна",
 
         // Language Selection
-        welcomeToUlov: "Добро пожаловать в Ulov",
+        welcomeToPoymal: "Добро пожаловать в Poymal",
         selectPreferredLanguage: "Выберите предпочитаемый язык",
         continue: "Продолжить",
         canChangeLater: "Вы можете изменить это позже в настройках",
@@ -530,7 +530,7 @@ export const i18n = {
         youveBeenInvited: "Тебя пригласили!",
         referralRegistered: "Реферал успешно зарегистрирован!",
         postFirstCatchToEarn: "Опубликуй свой первый улов за 7 дней и получи 7 дней Премиума!",
-        invitedYouToJoin: "приглашает тебя в Улов",
+        invitedYouToJoin: "приглашает тебя в Poymal",
         whatYoullGet: "Что ты получишь:",
         daysPremium: "дней Премиума",
         whenYouPostFirstCatch: "Когда опубликуешь первый улов",
@@ -539,7 +539,7 @@ export const i18n = {
         joinNow: "Присоединиться",
         referralCodeSaved: "Твой реферал будет зарегистрирован при входе",
         alreadyReferred: "Ты уже был приглашён",
-        referralShareText: "Присоединяйся к Улов! Опубликуй первый улов за 7 дней — и мы оба получим 7 дней Премиума.",
+        referralShareText: "Присоединяйся к Poymal! Опубликуй первый улов за 7 дней — и мы оба получим 7 дней Премиума.",
         viewHistory: "История",
         progressTo30Days: "7 дней Премиума за друга",
         howToEarnPremium: "Как заработать Премиум?",
@@ -691,7 +691,7 @@ export const i18n = {
         showCountryBadge: "Show Country Badge",
 
         // Pro
-        proTitle: "Ulov PRO",
+        proTitle: "Poymal PRO",
         proDescription: "Unlimited AI fish ID's and no ads",
         proFeature1: "Unlimited AI fish identification",
         proFeature2: "No ads",
@@ -1029,7 +1029,7 @@ export const i18n = {
         yourCountry: "Your country",
 
         // Language Selection
-        welcomeToUlov: "Welcome to Ulov",
+        welcomeToPoymal: "Welcome to Poymal",
         selectPreferredLanguage: "Select your preferred language",
         continue: "Continue",
         canChangeLater: "You can change this later in settings",
@@ -1148,7 +1148,7 @@ export const i18n = {
         youveBeenInvited: "You've been invited!",
         referralRegistered: "Referral registered successfully!",
         postFirstCatchToEarn: "Post your first catch within 7 days to earn 7 days free Premium!",
-        invitedYouToJoin: "invited you to join Ulov",
+        invitedYouToJoin: "invited you to join Poymal",
         whatYoullGet: "What you'll get:",
         daysPremium: "days Premium",
         whenYouPostFirstCatch: "When you post your first catch",
@@ -1157,7 +1157,7 @@ export const i18n = {
         joinNow: "Join Now",
         referralCodeSaved: "Your referral will be registered when you sign in",
         alreadyReferred: "You have already been referred",
-        referralShareText: "Join me on Ulov! Post your first catch within 7 days — we both get 7 days of Premium.",
+        referralShareText: "Join me on Poymal! Post your first catch within 7 days — we both get 7 days of Premium.",
         viewHistory: "View History",
         progressTo30Days: "7 days Premium per friend",
         howToEarnPremium: "How to earn Premium?",

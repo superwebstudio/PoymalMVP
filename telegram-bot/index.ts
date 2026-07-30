@@ -25,7 +25,7 @@ bot.command('start', async (ctx) => {
             inline_keyboard: [
                 [
                     {
-                        text: '🚣 Open Ulov App',
+                        text: '🚣 Open Poymal App',
                         web_app: { url: WEB_APP_URL },
                     },
                 ],
@@ -33,7 +33,7 @@ bot.command('start', async (ctx) => {
         };
 
         await ctx.reply(
-            '🎣 Welcome to Ulov!\n\n' +
+            '🎣 Welcome to Poymal!\n\n' +
             'A fishing logbook app for anglers.\n\n' +
             'Click the button below to launch the app:',
             {
@@ -42,7 +42,7 @@ bot.command('start', async (ctx) => {
         );
     } else {
         await ctx.reply(
-            '🎣 Welcome to Ulov!\n\n' +
+            '🎣 Welcome to Poymal!\n\n' +
             'A fishing logbook app for anglers.\n\n' +
             `⚠️ Web App URL must use HTTPS.\n` +
             `Current URL: ${WEB_APP_URL}\n\n` +
@@ -58,8 +58,8 @@ bot.command('start', async (ctx) => {
 // Help command
 bot.command('help', async (ctx) => {
     await ctx.reply(
-        '📖 Ulov Bot Commands:\n\n' +
-        '/start - Launch the Ulov app\n' +
+        '📖 Poymal Bot Commands:\n\n' +
+        '/start - Launch the Poymal app\n' +
         '/help - Show this help message\n' +
         '/test - Test the app connection\n\n' +
         'The app allows you to:\n' +

@@ -1,7 +1,7 @@
 {
-  "name": "ulov-telegram-bot",
+  "name": "poymal-telegram-bot",
   "version": "1.0.0",
-  "description": "Telegram bot for testing Ulov fishing app",
+  "description": "Telegram bot for testing Poymal fishing app",
   "main": "index.ts",
   "scripts": {
     "dev": "tsx watch index.ts",
@@ -12,7 +12,7 @@
     "telegram",
     "bot",
     "fishing",
-    "ulov"
+    "poymal"
   ],
   "author": "",
   "license": "ISC",
@@ -26,5 +26,3 @@
     "typescript": "^5.3.3"
   }
 }
-
-

@@ -104,13 +104,13 @@ export function LoginForm({ initialError, nextPath }: LoginFormProps) {
         <div className="mb-8 text-center">
           <Image
             src="/logo-max.svg"
-            alt="Ulov"
+            alt="Poymal"
             width={180}
             height={72}
             priority
             className="mx-auto mb-7 h-auto w-40"
           />
-          <h1 className="text-3xl font-bold tracking-tight text-white">Welcome to Ulov</h1>
+          <h1 className="text-3xl font-bold tracking-tight text-white">Welcome to Poymal</h1>
           <p className="mt-2 text-sm leading-6 text-zinc-400">
             Log your catches and connect with anglers.
           </p>

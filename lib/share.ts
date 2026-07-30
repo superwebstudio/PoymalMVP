@@ -38,7 +38,7 @@ export async function shareCatch(
     options.text || buildShareText(catchUrl, options.species);
   const title =
     options.title ||
-    (options.species ? `${options.species} Catch` : 'Ulov Catch');
+    (options.species ? `${options.species} Catch` : 'Poymal Catch');
 
   // Prefer native share first (iOS/Android). Telegram Mini App as fallback for in-app.
   if (typeof navigator !== 'undefined' && typeof navigator.share === 'function') {

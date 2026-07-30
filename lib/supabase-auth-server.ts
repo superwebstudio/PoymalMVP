@@ -3,10 +3,10 @@ import { createClient, type Session, type User as SupabaseUser } from '@supabase
 import type { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 
-export const ACCESS_TOKEN_COOKIE = 'ulov-access-token';
-export const REFRESH_TOKEN_COOKIE = 'ulov-refresh-token';
-export const AUTH_NEXT_COOKIE = 'ulov-auth-next';
-export const AUTH_REFERRAL_COOKIE = 'ulov-auth-referral';
+export const ACCESS_TOKEN_COOKIE = 'poymal-access-token';
+export const REFRESH_TOKEN_COOKIE = 'poymal-refresh-token';
+export const AUTH_NEXT_COOKIE = 'poymal-auth-next';
+export const AUTH_REFERRAL_COOKIE = 'poymal-auth-referral';
 
 export interface AuthStorage {
   getItem: (key: string) => string | null | Promise<string | null>;

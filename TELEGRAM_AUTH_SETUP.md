@@ -42,7 +42,7 @@ This is the same token used for the Telegram bot.
 4. **Launch from Telegram**:
    - Open your bot in Telegram
    - Send `/start`
-   - Click "Open Ulov App" button
+   - Click "Open Poymal App" button
    - The app will authenticate automatically
 
 ## What Gets Stored

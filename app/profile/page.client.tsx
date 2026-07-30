@@ -143,7 +143,7 @@ export default function ProfilePageClient({ initialUser }: ProfilePageClientProp
                             >
                                 <img
                                     src="/logo-min-gold.svg"
-                                    alt="Ulov"
+                                    alt="Poymal"
                                     className="h-3 w-3"
                                 />
                                 {dict.upgradeToPro || 'Get PRO'}

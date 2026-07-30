@@ -123,7 +123,7 @@ export const ProfileSettings: React.FC<ProfileSettingsProps> = ({ currentLanguag
               <div className="p-4 border border-yellow-500/30 rounded-lg bg-yellow-500/10">
                 <div className="flex items-center gap-2 mb-2">
                   <Star className="text-yellow-500 fill-yellow-500" size={20} />
-                  <h4 className="font-bold text-yellow-500">Ulov PRO</h4>
+                  <h4 className="font-bold text-yellow-500">Poymal PRO</h4>
                 </div>
                 <p className="text-sm text-yellow-200/80 mb-3">
                   {isPro ? (dict.youArePro || "You are a PRO member!") : (dict.getProFeatures || "Get unlimited AI scans and remove ads.")}

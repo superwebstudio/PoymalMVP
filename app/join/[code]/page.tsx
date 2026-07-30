@@ -112,7 +112,7 @@ export default function JoinPage({ params }: { params: Promise<{ code: string }>
           <>
             <p className="text-zinc-400 text-lg">
               <span className="text-yellow-500 font-semibold">{referrerName}</span>{' '}
-              {dict.invitedYouToJoin || 'invited you to join Ulov'}
+              {dict.invitedYouToJoin || 'invited you to join Poymal'}
             </p>
 
             {/* Benefits */}

@@ -18,7 +18,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Ulov - Fishing Logbook",
+  title: "Poymal - Fishing Logbook",
   description: "A fishing logbook app for anglers",
 };
 

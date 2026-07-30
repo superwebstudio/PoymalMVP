@@ -6,8 +6,8 @@ import { getCurrentUser } from "@/lib/get-current-user";
 import "@/admin/admin.css";
 
 export const metadata: Metadata = {
-  title: "Ulov Admin Dashboard",
-  description: "Admin dashboard for Ulov fishing app",
+  title: "Poymal Admin Dashboard",
+  description: "Admin dashboard for Poymal fishing app",
 };
 
 export const dynamic = "force-dynamic";

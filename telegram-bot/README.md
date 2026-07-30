@@ -1,6 +1,6 @@
-# Ulov Telegram Bot
+# Poymal Telegram Bot
 
-A TypeScript Telegram bot for testing the Ulov fishing app.
+A TypeScript Telegram bot for testing the Poymal fishing app.
 
 ## Setup
 
@@ -40,13 +40,13 @@ A TypeScript Telegram bot for testing the Ulov fishing app.
 
 ## Commands
 
-- `/start` - Launch the Ulov app via Web App button
+- `/start` - Launch the Poymal app via Web App button
 - `/help` - Show help message
 - `/test` - Test bot connection
 
 ## Features
 
-- Web App integration for launching the Ulov app
+- Web App integration for launching the Poymal app
 - Photo handling for testing
 - Web app data reception
 

@@ -424,7 +424,7 @@ export default function SettingsPage() {
           {currentUser?.isPro ? (
             <Link href="/membership" className="flex items-center justify-between bg-zinc-900 border border-amber-500/30 rounded-lg p-4 hover:border-amber-500/50 transition-colors">
               <div className="flex items-center gap-3">
-                <img src="/logo-min-gold.svg" alt="Ulov" className="h-5 w-5" />
+                <img src="/logo-min-gold.svg" alt="Poymal" className="h-5 w-5" />
                 <div>
                   <div className="text-zinc-200 font-semibold">{dict.managePro || 'Manage PRO'}</div>
                   <div className="text-xs text-zinc-400">{dict.membershipManagement}</div>
@@ -434,7 +434,7 @@ export default function SettingsPage() {
           ) : (
             <Link href="/pro" className="flex items-center justify-between bg-zinc-900 border border-amber-500/30 rounded-lg p-4 hover:border-amber-500/50 transition-colors">
               <div className="flex items-center gap-3">
-                <img src="/logo-min-gold.svg" alt="Ulov" className="h-5 w-5" />
+                <img src="/logo-min-gold.svg" alt="Poymal" className="h-5 w-5" />
                 <div>
                   <div className="text-zinc-200 font-semibold">{dict.upgradeToPro}</div>
                   <div className="text-xs text-zinc-400">{dict.unlimitedAiAdFree}</div>
@@ -648,7 +648,7 @@ export default function SettingsPage() {
             <div className="flex items-center gap-3 text-zinc-400">
               <Info size={20} />
               <div>
-                <div className="text-zinc-200 font-medium">Ulov v1.0.0</div>
+                <div className="text-zinc-200 font-medium">Poymal v1.0.0</div>
                 <div className="text-xs text-zinc-500">{dict.fishingLogbook}</div>
               </div>
             </div>

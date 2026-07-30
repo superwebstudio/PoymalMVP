@@ -208,7 +208,7 @@ export const useWeatherStore = create<WeatherState>((set, get) => ({
             const response = await fetch(
                 `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1`,
                 {
-                    headers: { 'User-Agent': 'Ulov Fishing App' },
+                    headers: { 'User-Agent': 'Poymal Fishing App' },
                     signal: controller.signal
                 }
             );

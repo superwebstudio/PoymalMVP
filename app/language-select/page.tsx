@@ -56,14 +56,14 @@ export default function LanguageSelectPage() {
           <div className="text-center">
             <Image
               src="/logo-max.svg"
-              alt="Ulov"
+              alt="Poymal"
               width={180}
               height={72}
               priority
               className="h-auto w-40 mx-auto mb-8"
             />
             <h1 className="text-3xl font-bold text-white mb-2">
-              Welcome to Ulov
+              Welcome to Poymal
             </h1>
             <p className="text-zinc-400">
               Choose your username and app language.

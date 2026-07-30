@@ -1,8 +1,8 @@
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Sign in | Ulov',
-  description: 'Sign in to Ulov with Google or a secure email code.',
+  title: 'Sign in | Poymal',
+  description: 'Sign in to Poymal with Google or a secure email code.',
 };
 
 interface LoginLayoutProps {

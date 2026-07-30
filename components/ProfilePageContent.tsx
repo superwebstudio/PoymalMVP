@@ -226,7 +226,7 @@ export function ProfilePageContent() {
                             >
                                 <img
                                     src="/logo-min-gold.svg"
-                                    alt="Ulov"
+                                    alt="Poymal"
                                     className="h-3 w-3"
                                 />
                                 {dict.upgradeToPro || 'Upgrade to PRO'}

@@ -92,7 +92,7 @@ export async function POST(request: NextRequest) {
                 unit_amount: PRO_MONTHLY_AMOUNT_CENTS,
                 recurring: { interval: 'month' },
                 product_data: {
-                  name: 'Ulov PRO',
+                  name: 'Poymal PRO',
                   description: 'Monthly PRO membership',
                 },
               },
