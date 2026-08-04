@@ -29,17 +29,22 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     }
 
     const supabase = createSupabaseAuthClient();
-    const { data, error } = await supabase.auth.verifyOtp({
+    const otpPayload = {
       email: parsed.data.email,
       token: parsed.data.code,
-      type: 'email',
-    });
+    } as const;
 
-    if (error || !data.session || !data.user) {
+    // Existing users usually need type "email"; first-time / unconfirmed need "signup".
+    let result = await supabase.auth.verifyOtp({ ...otpPayload, type: 'email' });
+    if (result.error || !result.data.session || !result.data.user) {
+      result = await supabase.auth.verifyOtp({ ...otpPayload, type: 'signup' });
+    }
+
+    if (result.error || !result.data.session || !result.data.user) {
       return NextResponse.json({ error: 'That code is invalid or has expired' }, { status: 401 });
     }
 
-    const { user, isNewUser } = await upsertAppUser(data.user, parsed.data.referralCode);
+    const { user, isNewUser } = await upsertAppUser(result.data.user, parsed.data.referralCode);
     const requestedRedirect = getSafeRedirect(parsed.data.next);
     const redirectTo = isNewUser ? '/language-select' : requestedRedirect;
     const response = NextResponse.json({
@@ -55,7 +60,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
         language: user.language,
       },
     });
-    setSessionCookies(response, data.session);
+    setSessionCookies(response, result.data.session);
 
     return response;
   } catch (error: unknown) {

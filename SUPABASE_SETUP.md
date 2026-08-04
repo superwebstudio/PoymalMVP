@@ -162,6 +162,31 @@ Or migrate fully to Supabase by:
 2. Replacing Prisma queries with Supabase queries
 3. Using Supabase's migration system
 
+## Email OTP sign-in (required for LoginForm)
+
+Poymal uses **one** email flow for both new and existing users (`signInWithOtp`).
+
+In the Supabase dashboard:
+
+1. **Authentication → Providers → Email**
+   - Enable Email provider
+   - **Turn OFF “Confirm email”** for passwordless OTP  
+     (the 6-digit code already proves the address; leaving Confirm on sends “Confirm your email address” with a link instead of a code)
+
+2. **Authentication → Email Templates → Magic Link**
+   - Replace link-only copy with an OTP code using `{{ .Token }}`, for example:
+
+```html
+<h2>Your Poymal sign-in code</h2>
+<p>Enter this code in the app:</p>
+<p style="font-size: 24px; font-weight: bold; letter-spacing: 4px;">{{ .Token }}</p>
+<p>This code expires shortly. If you didn’t request it, you can ignore this email.</p>
+```
+
+3. Do **not** rely on the “Confirm signup” template for this flow.
+
+After that, “Email me a code” works the same for first-time and returning users.
+
 ## Testing Checklist
 
 - [ ] Environment variables configured

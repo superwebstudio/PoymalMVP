@@ -21,6 +21,9 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     }
 
     const supabase = createSupabaseAuthClient();
+    // One flow for new + existing users. Supabase auto-creates on first OTP
+    // when shouldCreateUser is true (default). Avoid passing user metadata
+    // here — that can force the "Confirm signup" email instead of an OTP.
     const { error } = await supabase.auth.signInWithOtp({
       email: parsed.data.email,
       options: {

@@ -9,14 +9,14 @@ type GuestAccountCTAProps = {
 
 const COPY = {
   log: {
-    title: 'Create an account to log your first catch.',
-    body: 'Save species, weight, location, and build a fishing journal you can come back to.',
-    cta: 'Create account',
+    title: 'Sign in to log your catches.',
+    body: 'Use the same email whether you’re new or returning. Save species, weight, location, and build a fishing journal.',
+    cta: 'Sign in',
   },
   profile: {
-    title: 'Create an account to build your fishing journal.',
-    body: 'Track your catches, follow anglers, and keep your spots and stats in one place.',
-    cta: 'Create account',
+    title: 'Sign in to open your fishing journal.',
+    body: 'New or returning — one sign-in. Track catches, follow anglers, and keep spots and stats in one place.',
+    cta: 'Sign in',
   },
 } as const;
 
@@ -125,6 +125,9 @@ export function GuestAccountCTA({
           >
             {copy.cta}
           </Link>
+          <p className="text-center text-xs text-zinc-500">
+            New here? Signing in creates your account automatically.
+          </p>
           <Link
             href="/"
             className="rounded-xl border border-zinc-700 bg-zinc-900 px-5 py-3.5 text-center text-base font-medium text-zinc-300 transition-colors hover:border-zinc-600 hover:bg-zinc-800"

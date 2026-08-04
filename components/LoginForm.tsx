@@ -112,7 +112,7 @@ export function LoginForm({ initialError, nextPath }: LoginFormProps) {
           />
           <h1 className="text-3xl font-bold tracking-tight text-white">Welcome to Poymal</h1>
           <p className="mt-2 text-sm leading-6 text-zinc-400">
-            Log your catches and connect with anglers.
+            Sign in or create an account — same email flow either way.
           </p>
         </div>
 
@@ -178,8 +178,11 @@ export function LoginForm({ initialError, nextPath }: LoginFormProps) {
                   disabled={loading}
                   className="w-full rounded-xl bg-sky-600 px-4 py-3 font-semibold text-white transition-colors hover:bg-sky-500 disabled:cursor-not-allowed disabled:opacity-60"
                 >
-                  {loading ? 'Sending code…' : 'Email me a sign-in code'}
+                  {loading ? 'Sending code…' : 'Email me a code'}
                 </button>
+                <p className="text-center text-xs text-zinc-500">
+                  Works for both new and existing accounts.
+                </p>
               </form>
             </div>
           ) : (
