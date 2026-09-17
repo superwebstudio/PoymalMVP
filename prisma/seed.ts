@@ -1,166 +1,208 @@
-import { PrismaClient } from '@prisma/client';
+import fs from 'node:fs';
+import path from 'node:path';
+import { PrismaClient, Prisma } from '@prisma/client';
+import seedData from './seed-data.json';
 
 const prisma = new PrismaClient();
 
-async function main() {
-  // 1. Clean up existing data
-  await prisma.reaction.deleteMany();
-  await prisma.follow.deleteMany();
-  await prisma.like.deleteMany();
-  await prisma.catch.deleteMany();
-  await prisma.user.deleteMany();
+const ROOT = path.join(__dirname, '..');
+const SOURCE_DIR = path.join(ROOT, 'fishing pics');
+const PUBLIC_DIR = path.join(ROOT, 'public', 'seed-catches');
 
-  console.log('Deleted existing data.');
+type SeedUser = (typeof seedData.users)[number];
+type SeedCatch = (typeof seedData.catches)[number];
 
-  // 2. Create Mock Users
-  // These auth IDs are placeholders for local seed data.
-  const user1 = await prisma.user.create({
-    data: {
-      authId: 'seed-alex',
-      email: 'alex@example.com',
-      firstName: 'Alex',
-      username: 'alex_angler',
-      photoUrl: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Alex',
-      isPro: true,
-      isAdmin: true,
-      language: 'en',
-      aiUsageCount: 5,
-      catchViewMode: 'grid',
-    },
+function slugifyFilename(filename: string): string {
+  const ext = path.extname(filename);
+  const base = path.basename(filename, ext);
+  const slug = base
+    .toLowerCase()
+    .replace(/['’]/g, '')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+  return `${slug}${ext.toLowerCase()}`;
+}
+
+function copySeedImages(): Map<string, string> {
+  if (!fs.existsSync(SOURCE_DIR)) {
+    throw new Error(`Missing image folder: ${SOURCE_DIR}`);
+  }
+
+  fs.mkdirSync(PUBLIC_DIR, { recursive: true });
+
+  const imageMap = new Map<string, string>();
+  const files = fs.readdirSync(SOURCE_DIR);
+
+  for (const file of files) {
+    const ext = path.extname(file).toLowerCase();
+    if (!['.jpg', '.jpeg', '.png', '.avif', '.webp'].includes(ext)) {
+      continue;
+    }
+
+    const slug = slugifyFilename(file);
+    fs.copyFileSync(path.join(SOURCE_DIR, file), path.join(PUBLIC_DIR, slug));
+    imageMap.set(file, `/seed-catches/${slug}`);
+  }
+
+  return imageMap;
+}
+
+function hoursAgoDate(hoursAgo: number): Date {
+  return new Date(Date.now() - hoursAgo * 60 * 60 * 1000);
+}
+
+function weatherPayload(catchItem: SeedCatch): Prisma.InputJsonValue | undefined {
+  if (!catchItem.weather) {
+    return undefined;
+  }
+
+  return {
+    weather: catchItem.weather,
+    marine: catchItem.marine ?? null,
+    locationName: catchItem.location,
+    fetchedAt: hoursAgoDate(catchItem.hoursAgo).toISOString(),
+  };
+}
+
+async function main(): Promise<void> {
+  const imageMap = copySeedImages();
+  console.log(`Copied ${imageMap.size} seed images to public/seed-catches.`);
+
+  await prisma.user.deleteMany({
+    where: { authId: { startsWith: 'seed-' } },
+  });
+  console.log('Removed previous seed users and related rows.');
+
+  const usersByKey = new Map<string, { id: string; username: string | null }>();
+
+  for (const user of seedData.users as SeedUser[]) {
+    const created = await prisma.user.create({
+      data: {
+        authId: user.authId,
+        email: user.email,
+        firstName: user.firstName,
+        username: user.username,
+        photoUrl: user.photoUrl,
+        isPro: user.isPro,
+        language: user.language,
+        country: user.country,
+        catchViewMode: user.catchViewMode,
+        showCountryBadge: true,
+        notificationsEnabled: true,
+      },
+      select: { id: true, username: true },
+    });
+    usersByKey.set(user.key, created);
+  }
+
+  console.log(`Created ${usersByKey.size} seed anglers.`);
+
+  const catchesByKey = new Map<string, { id: string }>();
+
+  for (const catchItem of seedData.catches as SeedCatch[]) {
+    const user = usersByKey.get(catchItem.userKey);
+    if (!user) {
+      throw new Error(`Unknown userKey on catch ${catchItem.key}: ${catchItem.userKey}`);
+    }
+
+    const imageUrl = imageMap.get(catchItem.imageFile);
+    if (!imageUrl) {
+      throw new Error(`Missing image file for catch ${catchItem.key}: ${catchItem.imageFile}`);
+    }
+
+    const created = await prisma.catch.create({
+      data: {
+        userId: user.id,
+        imageUrl,
+        species: catchItem.species,
+        scientificName: catchItem.scientificName,
+        description: catchItem.description,
+        weight: catchItem.weight,
+        length: catchItem.length,
+        location: catchItem.location,
+        latitude: catchItem.latitude,
+        longitude: catchItem.longitude,
+        depth: catchItem.depth,
+        waterTemp: catchItem.waterTemp,
+        bait: catchItem.bait,
+        method: catchItem.method,
+        rating: catchItem.rating,
+        isPublic: true,
+        locationPrivate: catchItem.locationPrivate,
+        isTextOnly: false,
+        postType: 'catch',
+        weatherData: weatherPayload(catchItem),
+        createdAt: hoursAgoDate(catchItem.hoursAgo),
+      },
+      select: { id: true },
+    });
+    catchesByKey.set(catchItem.key, created);
+  }
+
+  console.log(`Created ${catchesByKey.size} seed catches.`);
+
+  const followRows = seedData.follows.flatMap(([followerKey, followingKey]) => {
+    const follower = usersByKey.get(followerKey);
+    const following = usersByKey.get(followingKey);
+    if (!follower || !following || follower.id === following.id) {
+      return [];
+    }
+    return [{ followerId: follower.id, followingId: following.id }];
   });
 
-  const user2 = await prisma.user.create({
-    data: {
-      authId: 'seed-ivan',
-      email: 'ivan@example.com',
-      firstName: 'Ivan',
-      username: 'ivan_fish',
-      photoUrl: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Ivan',
-      isPro: false,
-      language: 'ru',
-      aiUsageCount: 0,
-      catchViewMode: 'list',
-    },
+  if (followRows.length > 0) {
+    await prisma.follow.createMany({ data: followRows, skipDuplicates: true });
+  }
+
+  const reactionRows = seedData.reactions.flatMap((row) => {
+    const user = usersByKey.get(row.userKey);
+    const catchRow = catchesByKey.get(row.catchKey);
+    if (!user || !catchRow) {
+      return [];
+    }
+    return [{ userId: user.id, catchId: catchRow.id, emoji: row.emoji }];
   });
 
-  const user3 = await prisma.user.create({
-    data: {
-      authId: 'seed-maria',
-      email: 'maria@example.com',
-      firstName: 'Maria',
-      username: 'maria_fishing',
-      photoUrl: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Maria',
-      isPro: false,
-      language: 'ru',
-      aiUsageCount: 1,
-      catchViewMode: 'grid',
-    },
+  if (reactionRows.length > 0) {
+    await prisma.reaction.createMany({ data: reactionRows, skipDuplicates: true });
+  }
+
+  const likeRows = seedData.likes.flatMap((row) => {
+    const user = usersByKey.get(row.userKey);
+    const catchRow = catchesByKey.get(row.catchKey);
+    if (!user || !catchRow) {
+      return [];
+    }
+    return [{ userId: user.id, catchId: catchRow.id }];
   });
 
-  console.log('Created mock users:', user1.username, user2.username, user3.username);
+  if (likeRows.length > 0) {
+    await prisma.like.createMany({ data: likeRows, skipDuplicates: true });
+  }
 
-  // 3. Create Mock Catches
-  const catch1 = await prisma.catch.create({
-    data: {
-      userId: user1.id,
-      imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/ea/Esox_lucius_ZOO_2.jpg/640px-Esox_lucius_ZOO_2.jpg',
-      species: 'Northern Pike',
-      description: 'Caught this beauty early morning near the reeds. Put up a great fight!',
-      weight: 4.5,
-      length: 85,
-      location: 'Volga River',
-      latitude: 56.8389,
-      longitude: 60.6057,
-      isPublic: true,
-      locationPrivate: false,
-      depth: 3.5,
-      waterTemp: 18.5,
-      bait: 'Spinnerbait',
-      method: 'Spinning',
-      createdAt: new Date(Date.now() - 1000 * 60 * 60 * 2), // 2 hours ago
-    },
-  });
+  for (const comment of seedData.comments) {
+    const user = usersByKey.get(comment.userKey);
+    const catchRow = catchesByKey.get(comment.catchKey);
+    if (!user || !catchRow) {
+      continue;
+    }
+    await prisma.comment.create({
+      data: {
+        userId: user.id,
+        catchId: catchRow.id,
+        content: comment.content,
+      },
+    });
+  }
 
-  const catch2 = await prisma.catch.create({
-    data: {
-      userId: user2.id,
-      imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/4/40/Perca_fluviatilis_Prague_Vltava_4.jpg/640px-Perca_fluviatilis_Prague_Vltava_4.jpg',
-      species: 'European Perch',
-      description: 'Nice perch from Lake Ladoga. Perfect size!',
-      weight: 0.8,
-      length: 25,
-      location: 'Lake Ladoga',
-      isPublic: true,
-      locationPrivate: false,
-      bait: 'Worm',
-      method: 'Bottom fishing',
-      createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24), // 1 day ago
-    },
-  });
-
-  const catch3 = await prisma.catch.create({
-    data: {
-      userId: user1.id,
-      imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/d/d9/Zander_file.jpg/640px-Zander_file.jpg',
-      species: 'Zander',
-      description: 'Caught at dusk using a jig. Great evening session!',
-      weight: 2.1,
-      length: 55,
-      location: 'Moscow Canal',
-      isPublic: true,
-      locationPrivate: true,
-      depth: 5.0,
-      waterTemp: 16.0,
-      bait: 'Jig',
-      method: 'Jigging',
-      createdAt: new Date(Date.now() - 1000 * 60 * 60 * 5), // 5 hours ago
-    },
-  });
-
-  const catch4 = await prisma.catch.create({
-    data: {
-      userId: user3.id,
-      imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/2/23/Carp_bream1.jpg/640px-Carp_bream1.jpg',
-      species: 'Common Bream',
-      description: 'Peaceful morning catch',
-      weight: 1.2,
-      length: 35,
-      location: 'Don River',
-      isPublic: true,
-      locationPrivate: false,
-      createdAt: new Date(Date.now() - 1000 * 60 * 60 * 12), // 12 hours ago
-    },
-  });
-
-  console.log('Created mock catches.');
-
-  // 4. Create Reactions
-  await prisma.reaction.createMany({
-    data: [
-      { userId: user2.id, catchId: catch1.id, emoji: '🔥' },
-      { userId: user3.id, catchId: catch1.id, emoji: '💪' },
-      { userId: user1.id, catchId: catch2.id, emoji: '👍' },
-      { userId: user3.id, catchId: catch3.id, emoji: '🎣' },
-    ],
-  });
-
-  console.log('Created mock reactions.');
-
-  // 5. Create Follows
-  await prisma.follow.createMany({
-    data: [
-      { followerId: user2.id, followingId: user1.id },
-      { followerId: user3.id, followingId: user1.id },
-      { followerId: user1.id, followingId: user2.id },
-    ],
-  });
-
-  console.log('Created mock follows.');
+  console.log(
+    `Seeded ${followRows.length} follows, ${reactionRows.length} reactions, ${likeRows.length} likes, ${seedData.comments.length} comments.`,
+  );
 }
 
 main()
-  .catch((e) => {
-    console.error(e);
+  .catch((error: unknown) => {
+    console.error(error);
     process.exit(1);
   })
   .finally(async () => {

@@ -80,11 +80,13 @@ export default function UserProfilePage({ params }: { params: Promise<{ id: stri
         return (
             <div className="flex items-center justify-center min-h-screen bg-zinc-950">
                 <div className="text-center">
-                    <img
-                        src="/logo-max.svg"
-                        alt="Poymal"
-                        className="h-16 mx-auto mb-6 opacity-90"
-                    />
+                    <Link href="/" className="inline-block" aria-label="Poymal home">
+                        <img
+                            src="/logo-max.svg"
+                            alt="Poymal"
+                            className="mx-auto mb-6 h-16 opacity-90"
+                        />
+                    </Link>
                     <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
                     <p className="text-zinc-400">{dict.loading}</p>
                 </div>

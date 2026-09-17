@@ -3,9 +3,10 @@
 import React, { useEffect } from 'react';
 import { BottomNav } from '@/components/BottomNav';
 import { TelegramBackButton } from '@/components/TelegramBackButton';
+import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { Check, CreditCard } from 'lucide-react';
 import { useI18n } from '@/lib/useI18n';
-import { useRouter } from 'next/navigation';
 import { useProStore } from '@/stores/useProStore';
 import type { PlanType } from '@/types';
 import { SwipeablePage } from '@/components/SwipeablePage';
@@ -102,8 +103,10 @@ export default function ProPage() {
             <div className="p-4 space-y-6 pt-6">
                 {/* Hero Section */}
                 <div className="rounded-2xl p-6 text-center">
-                    <div className="flex items-center justify-center mb-8">
-                        <img src="/logo-max.svg" alt="Poymal" />
+                    <div className="mb-8 flex items-center justify-center">
+                        <Link href="/" aria-label="Poymal home" className="inline-block">
+                            <img src="/logo-max.svg" alt="Poymal" />
+                        </Link>
                     </div>
                     <h2 className="text-2xl font-bold mb-2 flex items-center justify-center gap-2 mx-auto mt-8">
                         <span className="bg-gradient-to-r from-yellow-400 via-yellow-500 to-yellow-400 bg-clip-text text-transparent">PRO</span>

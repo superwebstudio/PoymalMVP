@@ -239,6 +239,7 @@ function LogCatchForm() {
         {/* Modals and Sheets */}
         <FishEntrySheet dict={dict} lang={lang} />
         <DeleteConfirmModal dict={dict} />
+        <StatusModal />
         <ImagePreviewModal />
 
         <BottomNav />

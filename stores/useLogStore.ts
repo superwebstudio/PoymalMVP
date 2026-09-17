@@ -229,13 +229,30 @@ export const useLogStore = create<LogStore>((set, get) => ({
 
     openFishSheet: (entry) => {
         if (entry) {
+            const base = createEmptyFishForm();
             set({
-                fishForm: { ...entry, imageFile: null, rating: entry.rating ?? null },
+                fishForm: {
+                    ...base,
+                    ...entry,
+                    id: entry.id || base.id,
+                    species: String(entry.species ?? ''),
+                    scientificName: String(entry.scientificName ?? ''),
+                    weight: String(entry.weight ?? ''),
+                    length: String(entry.length ?? ''),
+                    bait: String(entry.bait ?? ''),
+                    method: String(entry.method ?? ''),
+                    imageData: entry.imageData ?? null,
+                    // Keep a newly picked local file when re-opening an unsaved entry
+                    imageFile: entry.imageFile ?? null,
+                    rating: entry.rating ?? null,
+                },
                 editingEntryId: entry.id,
                 isFishSheetOpen: true,
                 fishSuggestions: [],
                 showFishSuggestions: false,
-                isSpeciesInputFocused: false
+                isSpeciesInputFocused: false,
+                weightError: false,
+                lengthError: false,
             });
         } else {
             set({
@@ -244,7 +261,9 @@ export const useLogStore = create<LogStore>((set, get) => ({
                 isFishSheetOpen: true,
                 fishSuggestions: [],
                 showFishSuggestions: false,
-                isSpeciesInputFocused: false
+                isSpeciesInputFocused: false,
+                weightError: false,
+                lengthError: false,
             });
         }
     },

@@ -1,6 +1,7 @@
 "use client";
 
 import Image from 'next/image';
+import Link from 'next/link';
 import { FormEvent, useState } from 'react';
 import { ArrowLeft, Mail, ShieldCheck } from 'lucide-react';
 
@@ -102,14 +103,16 @@ export function LoginForm({ initialError, nextPath }: LoginFormProps) {
     <main className="flex min-h-screen items-center justify-center bg-zinc-950 px-5 py-10 text-zinc-100">
       <section className="w-full max-w-sm">
         <div className="mb-8 text-center">
-          <Image
-            src="/logo-max.svg"
-            alt="Poymal"
-            width={180}
-            height={72}
-            priority
-            className="mx-auto mb-7 h-auto w-40"
-          />
+          <Link href="/" className="inline-block" aria-label="Poymal home">
+            <Image
+              src="/logo-max.svg"
+              alt="Poymal"
+              width={180}
+              height={72}
+              priority
+              className="mx-auto mb-7 h-auto w-40"
+            />
+          </Link>
           <h1 className="text-3xl font-bold tracking-tight text-white">Welcome to Poymal</h1>
           <p className="mt-2 text-sm leading-6 text-zinc-400">
             Sign in or create an account — same email flow either way.

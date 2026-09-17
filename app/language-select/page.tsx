@@ -1,6 +1,7 @@
 "use client";
 
 import Image from 'next/image';
+import Link from 'next/link';
 import { FormEvent, useState } from 'react';
 import { AtSign, Check } from 'lucide-react';
 import { useRouter } from 'next/navigation';
@@ -54,14 +55,16 @@ export default function LanguageSelectPage() {
       <div className="flex-1 flex flex-col items-center justify-center p-6">
         <div className="w-full max-w-md space-y-8">
           <div className="text-center">
-            <Image
-              src="/logo-max.svg"
-              alt="Poymal"
-              width={180}
-              height={72}
-              priority
-              className="h-auto w-40 mx-auto mb-8"
-            />
+            <Link href="/" className="inline-block" aria-label="Poymal home">
+              <Image
+                src="/logo-max.svg"
+                alt="Poymal"
+                width={180}
+                height={72}
+                priority
+                className="h-auto w-40 mx-auto mb-8"
+              />
+            </Link>
             <h1 className="text-3xl font-bold text-white mb-2">
               Welcome to Poymal
             </h1>

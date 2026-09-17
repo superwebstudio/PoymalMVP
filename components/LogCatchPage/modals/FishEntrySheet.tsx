@@ -18,6 +18,7 @@ export const FishEntrySheet: React.FC<FishEntrySheetProps> = ({ dict, lang }) =>
     const {
         postedSpecies,
         isIdentifying,
+        isProcessingImage,
         handleFishSpeciesChange,
         handleSelectSpecies,
         handleFishImageChange,
@@ -32,7 +33,15 @@ export const FishEntrySheet: React.FC<FishEntrySheetProps> = ({ dict, lang }) =>
         weightError, lengthError
     } = store;
 
-    const hasUnsavedChanges = fishForm.species || fishForm.weight || fishForm.length || fishForm.bait || fishForm.method || fishForm.imageData;
+    const hasUnsavedChanges = Boolean(
+        fishForm.species ||
+        fishForm.weight ||
+        fishForm.length ||
+        fishForm.bait ||
+        fishForm.method ||
+        fishForm.imageData ||
+        fishForm.imageFile
+    );
 
     const handleClose = () => {
         if (hasUnsavedChanges) {
@@ -44,9 +53,14 @@ export const FishEntrySheet: React.FC<FishEntrySheetProps> = ({ dict, lang }) =>
         }
     };
 
+    const onSaveClick = (event: React.MouseEvent<HTMLButtonElement>) => {
+        event.preventDefault();
+        event.stopPropagation();
+        handleSaveFishEntry();
+    };
+
     return (
         <>
-            {/* Simple backdrop without blur */}
             <Backdrop
                 isOpen={isFishSheetOpen}
                 onClose={handleClose}
@@ -59,8 +73,12 @@ export const FishEntrySheet: React.FC<FishEntrySheetProps> = ({ dict, lang }) =>
                 onClose={handleClose}
                 snapPoints={[0, 0.95, 1]}
                 initialSnap={1}
+                disableDismiss={isProcessingImage}
             >
-                <Sheet.Container className="!bg-zinc-900 border-t border-zinc-800 rounded-t-3xl">
+                <Sheet.Container
+                    className="!bg-zinc-900 border-t border-zinc-800 rounded-t-3xl"
+                    style={{ zIndex: 9999 }}
+                >
                     <Sheet.Header>
                         <div className="flex justify-center py-3">
                             <div className="w-12 h-1.5 bg-zinc-600 rounded-full" />
@@ -69,7 +87,7 @@ export const FishEntrySheet: React.FC<FishEntrySheetProps> = ({ dict, lang }) =>
                             <h3 className="text-lg font-semibold text-white">
                                 {editingEntryId ? (dict.editFish || 'Edit fish') : (dict.addFish || 'Add fish')}
                             </h3>
-                            <button onClick={handleClose} className="p-2 text-zinc-400 hover:text-zinc-200">
+                            <button type="button" onClick={handleClose} className="p-2 text-zinc-400 hover:text-zinc-200">
                                 <X size={20} />
                             </button>
                         </div>
@@ -84,14 +102,14 @@ export const FishEntrySheet: React.FC<FishEntrySheetProps> = ({ dict, lang }) =>
                                 <div className="flex gap-2">
                                     <div className="relative flex-1">
                                         <input
-                                            value={fishForm.species}
+                                            value={fishForm.species ?? ''}
                                             onChange={(e) => handleFishSpeciesChange(e.target.value)}
                                             onFocus={() => store.setIsSpeciesInputFocused(true)}
                                             onBlur={() => {
                                                 setTimeout(() => store.setIsSpeciesInputFocused(false), 200);
                                             }}
                                             placeholder={dict.speciesPlaceholder}
-                                            className="w-full bg-zinc-900 border border-zinc-800 rounded-lg p-3  text-white focus:outline-none "
+                                            className="w-full bg-zinc-900 border border-zinc-800 rounded-lg p-3 text-white focus:outline-none"
                                             autoComplete="off"
                                         />
                                         <input
@@ -144,10 +162,15 @@ export const FishEntrySheet: React.FC<FishEntrySheetProps> = ({ dict, lang }) =>
                                     <button
                                         type="button"
                                         onClick={() => fishFileInputRef.current?.click()}
-                                        className="flex-shrink-0 self-start flex items-center justify-center bg-zinc-900 border border-zinc-800 rounded-lg text-zinc-400 hover:text-white hover:border-blue-500 transition-colors px-3 py-3"
+                                        disabled={isProcessingImage}
+                                        className="flex-shrink-0 self-start flex items-center justify-center bg-zinc-900 border border-zinc-800 rounded-lg text-zinc-400 hover:text-white hover:border-blue-500 transition-colors px-3 py-3 disabled:opacity-50"
                                         aria-label={dict.addPhoto || 'Add photo'}
                                     >
-                                        <Camera size={24} />
+                                        {isProcessingImage ? (
+                                            <div className="w-6 h-6 border-2 border-zinc-400 border-t-transparent rounded-full animate-spin" />
+                                        ) : (
+                                            <Camera size={24} />
+                                        )}
                                     </button>
                                 </div>
                                 {fishForm.scientificName && (
@@ -161,7 +184,7 @@ export const FishEntrySheet: React.FC<FishEntrySheetProps> = ({ dict, lang }) =>
                                     <input
                                         type="text"
                                         inputMode="decimal"
-                                        value={fishForm.weight}
+                                        value={fishForm.weight ?? ''}
                                         onChange={(e) => {
                                             const value = e.target.value;
                                             if (value === '' || /^\d*\.?\d*$/.test(value)) {
@@ -172,10 +195,11 @@ export const FishEntrySheet: React.FC<FishEntrySheetProps> = ({ dict, lang }) =>
                                             }
                                         }}
                                         onBlur={() => {
-                                            const isValid = !fishForm.weight.trim() || /^\d*\.?\d+$/.test(fishForm.weight.trim());
+                                            const weight = String(fishForm.weight ?? '').trim();
+                                            const isValid = !weight || /^\d*\.?\d+$/.test(weight);
                                             store.setWeightError(!isValid);
                                         }}
-                                        className={`w-full bg-zinc-900 border rounded-lg p-3 text-lg font-semibold text-white focus:outline-none ${weightError ? 'border-red-500 focus:border-red-500' : 'border-zinc-800 '}`}
+                                        className={`w-full bg-zinc-900 border rounded-lg p-3 text-lg font-semibold text-white focus:outline-none ${weightError ? 'border-red-500 focus:border-red-500' : 'border-zinc-800'}`}
                                         placeholder="0.0"
                                     />
                                 </div>
@@ -184,7 +208,7 @@ export const FishEntrySheet: React.FC<FishEntrySheetProps> = ({ dict, lang }) =>
                                     <input
                                         type="text"
                                         inputMode="decimal"
-                                        value={fishForm.length}
+                                        value={fishForm.length ?? ''}
                                         onChange={(e) => {
                                             const value = e.target.value;
                                             if (value === '' || /^\d*\.?\d*$/.test(value)) {
@@ -195,47 +219,43 @@ export const FishEntrySheet: React.FC<FishEntrySheetProps> = ({ dict, lang }) =>
                                             }
                                         }}
                                         onBlur={() => {
-                                            const isValid = !fishForm.length.trim() || /^\d*\.?\d+$/.test(fishForm.length.trim());
+                                            const length = String(fishForm.length ?? '').trim();
+                                            const isValid = !length || /^\d*\.?\d+$/.test(length);
                                             store.setLengthError(!isValid);
                                         }}
-                                        className={`w-full bg-zinc-900 border rounded-lg p-3 text-lg font-semibold text-white focus:outline-none ${lengthError ? 'border-red-500 focus:border-red-500' : 'border-zinc-800 '}`}
+                                        className={`w-full bg-zinc-900 border rounded-lg p-3 text-lg font-semibold text-white focus:outline-none ${lengthError ? 'border-red-500 focus:border-red-500' : 'border-zinc-800'}`}
                                         placeholder="0.0"
                                     />
                                 </div>
                             </div>
 
-
                             <div className="grid grid-cols-2 gap-3 mb-3">
                                 <div>
                                     <label className="text-xs text-zinc-400 ml-1">{dict.baitLabel || 'Bait'}</label>
                                     <input
-                                        value={fishForm.bait}
+                                        value={fishForm.bait ?? ''}
                                         onChange={(e) => store.setFishForm(prev => ({ ...prev, bait: e.target.value }))}
                                         onFocus={(e) => {
-                                            // Wait for keyboard to appear
                                             setTimeout(() => {
                                                 e.target.scrollIntoView({ behavior: 'smooth', block: 'center' });
                                             }, 300);
                                         }}
                                         placeholder={dict.baitPlaceholder || 'e.g. Spinnerbait'}
-                                        className="w-full bg-zinc-900 border border-zinc-800 rounded-lg p-3 text-sm text-white focus:outline-none "
-                                        style={{ fontSize: '16px' }}
+                                        className="w-full bg-zinc-900 border border-zinc-800 rounded-lg p-3 text-base text-white focus:outline-none"
                                     />
                                 </div>
                                 <div>
                                     <label className="text-xs text-zinc-400 ml-1">{dict.methodLabel || 'Method'}</label>
                                     <input
-                                        value={fishForm.method}
+                                        value={fishForm.method ?? ''}
                                         onChange={(e) => store.setFishForm(prev => ({ ...prev, method: e.target.value }))}
                                         onFocus={(e) => {
-                                            // Wait for keyboard to appear
                                             setTimeout(() => {
                                                 e.target.scrollIntoView({ behavior: 'smooth', block: 'center' });
                                             }, 300);
                                         }}
                                         placeholder={dict.selectMethod || 'e.g. Spinning'}
-                                        className="w-full bg-zinc-900 border border-zinc-800 rounded-lg p-3 text-sm text-white focus:outline-none "
-                                        style={{ fontSize: '16px' }}
+                                        className="w-full bg-zinc-900 border border-zinc-800 rounded-lg p-3 text-base text-white focus:outline-none"
                                     />
                                 </div>
                             </div>
@@ -258,7 +278,7 @@ export const FishEntrySheet: React.FC<FishEntrySheetProps> = ({ dict, lang }) =>
                         </div>
 
                         {fishForm.imageData && (
-                            <div className="relative">
+                            <div className="relative mt-4">
                                 <img
                                     src={fishForm.imageData}
                                     alt={fishForm.species || 'Fish'}
@@ -278,8 +298,8 @@ export const FishEntrySheet: React.FC<FishEntrySheetProps> = ({ dict, lang }) =>
                                 <button
                                     type="button"
                                     onClick={handleIdentifyFishEntry}
-                                    disabled={isIdentifying}
-                                    className="absolute bottom-2 left-2 flex items-center gap-1.5 bg-black/60 backdrop-blur-md hover:bg-black/80 text-white/90 text-xs font-medium py-1.5 px-3 rounded-lg transition-all border border-white/10"
+                                    disabled={isIdentifying || !fishForm.imageFile}
+                                    className="absolute bottom-2 left-2 flex items-center gap-1.5 bg-black/60 backdrop-blur-md hover:bg-black/80 text-white/90 text-xs font-medium py-1.5 px-3 rounded-lg transition-all border border-white/10 disabled:opacity-50"
                                 >
                                     {isIdentifying ? (
                                         <div className="w-3 h-3 border-2 border-white/70 border-t-transparent rounded-full animate-spin" />
@@ -291,17 +311,30 @@ export const FishEntrySheet: React.FC<FishEntrySheetProps> = ({ dict, lang }) =>
                             </div>
                         )}
 
-                        <div className="mt-6 flex gap-3">
+                        {isProcessingImage && !fishForm.imageData && (
+                            <div className="mt-4 flex h-40 items-center justify-center rounded-xl border border-zinc-800 bg-zinc-900/80 text-sm text-zinc-400">
+                                {dict.processingImage || 'Processing photo...'}
+                            </div>
+                        )}
+
+                        <div className="mt-6 flex gap-3 pb-safe">
                             <button
                                 type="button"
-                                onClick={handleSaveFishEntry}
-                                className="flex-1 bg-sky-600 hover:bg-sky-500 text-white font-semibold py-3 rounded-xl transition-colors"
+                                onClick={onSaveClick}
+                                disabled={isProcessingImage}
+                                className="flex-1 bg-sky-600 hover:bg-sky-500 text-white font-semibold py-3 rounded-xl transition-colors disabled:opacity-50"
                             >
-                                {dict.saveFish || 'Save fish'}
+                                {isProcessingImage
+                                    ? (dict.processingImage || 'Processing photo...')
+                                    : (dict.saveFish || 'Save fish')}
                             </button>
                             <button
                                 type="button"
-                                onClick={handleClose}
+                                onClick={(e) => {
+                                    e.preventDefault();
+                                    e.stopPropagation();
+                                    handleClose();
+                                }}
                                 className="flex-1 bg-zinc-800 hover:bg-zinc-700 text-zinc-200 font-semibold py-3 rounded-xl transition-colors"
                             >
                                 {dict.cancel || 'Cancel'}
@@ -309,7 +342,6 @@ export const FishEntrySheet: React.FC<FishEntrySheetProps> = ({ dict, lang }) =>
                         </div>
                     </Sheet.Content>
                 </Sheet.Container>
-                {/* Remove built-in backdrop since we use custom BackdropBlur */}
             </Sheet>
         </>
     );

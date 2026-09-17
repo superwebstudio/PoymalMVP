@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { useI18n } from '@/lib/useI18n';
 import { useUserStore } from '@/stores/useUserStore';
 import { ArrowRight, Gift } from 'lucide-react';
@@ -71,11 +72,13 @@ export default function ReferralWelcomePage() {
                 <div className="w-full max-w-md space-y-8">
                     {/* Logo */}
                     <div className="text-center">
-                        <img
-                            src="/logo-max.svg"
-                            alt="Poymal"
-                            className="h-16 mx-auto mb-6"
-                        />
+                        <Link href="/" className="inline-block" aria-label="Poymal home">
+                            <img
+                                src="/logo-max.svg"
+                                alt="Poymal"
+                                className="mx-auto mb-6 h-16"
+                            />
+                        </Link>
                     </div>
 
                     {screen === 1 ? (

@@ -13,6 +13,7 @@ import { useLogEdit } from '@/hooks/useLogEdit';
 import { useNotificationStore } from '@/stores/useNotificationStore';
 import { FishEntrySheet } from '@/components/LogCatchPage/modals/FishEntrySheet';
 import { DeleteConfirmModal } from '@/components/LogCatchPage/modals/DeleteConfirmModal';
+import { StatusModal } from '@/components/LogCatchPage/modals/StatusModal';
 import { ImagePreviewModal } from '@/components/LogCatchPage/modals/ImagePreviewModal';
 import { FishEntriesList } from '@/components/LogCatchPage/FishEntriesList';
 import { LocationSection } from '@/components/LogCatchPage/LocationSection';
@@ -141,14 +142,15 @@ export default function EditCatchPage({ params }: { params: Promise<{ id: string
             const fishEntries: FishEntry[] = allCatches
               .filter((c: any) => c.species || c.imageUrl) // Only include catches with species or image
               .map((c: any) => ({
-                id: c.id,
-                species: c.species || '',
-                scientificName: c.scientificName || '',
-                weight: c.weight?.toString() || '',
-                length: c.length?.toString() || '',
+                id: String(c.id),
+                species: String(c.species || ''),
+                scientificName: String(c.scientificName || ''),
+                weight: c.weight == null ? '' : String(c.weight),
+                length: c.length == null ? '' : String(c.length),
                 imageData: c.imageUrl || null,
-                bait: c.bait || '',
-                method: c.method || '',
+                imageFile: null,
+                bait: String(c.bait || ''),
+                method: String(c.method || ''),
                 rating: typeof c.rating === 'number' ? c.rating : null,
               }));
 
@@ -158,14 +160,15 @@ export default function EditCatchPage({ params }: { params: Promise<{ id: string
             // If related fetch fails, just use the main catch
             if (catchData.species || catchData.imageUrl) {
               store.setFishEntries([{
-                id: catchData.id,
-                species: catchData.species || '',
-                scientificName: catchData.scientificName || '',
-                weight: catchData.weight?.toString() || '',
-                length: catchData.length?.toString() || '',
+                id: String(catchData.id),
+                species: String(catchData.species || ''),
+                scientificName: String(catchData.scientificName || ''),
+                weight: catchData.weight == null ? '' : String(catchData.weight),
+                length: catchData.length == null ? '' : String(catchData.length),
                 imageData: catchData.imageUrl || null,
-                bait: catchData.bait || '',
-                method: catchData.method || '',
+                imageFile: null,
+                bait: String(catchData.bait || ''),
+                method: String(catchData.method || ''),
                 rating: typeof catchData.rating === 'number' ? catchData.rating : null,
               }]);
             }
@@ -295,6 +298,7 @@ export default function EditCatchPage({ params }: { params: Promise<{ id: string
         {/* Modals and Sheets */}
         <FishEntrySheet dict={dict} lang={lang} />
         <DeleteConfirmModal dict={dict} />
+        <StatusModal />
         <ImagePreviewModal />
 
         <BottomNav />

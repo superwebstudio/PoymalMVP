@@ -246,6 +246,18 @@
         "commonNameRu": "Голец"
     },
     {
+        "id": "salvelinus_namaycush",
+        "scientificName": "Salvelinus namaycush",
+        "commonNameEn": "Lake Trout",
+        "commonNameRu": "Озёрная форель"
+    },
+    {
+        "id": "oncorhynchus_tshawytscha",
+        "scientificName": "Oncorhynchus tshawytscha",
+        "commonNameEn": "Chinook Salmon",
+        "commonNameRu": "Чавыча"
+    },
+    {
         "id": "misgurnus_fossilis",
         "scientificName": "Misgurnus fossilis",
         "commonNameEn": "Weatherfish",
@@ -634,5 +646,11 @@
         "scientificName": "Coryphaena hippurus",
         "commonNameEn": "Mahi-Mahi (Dorado)",
         "commonNameRu": "Корифена (Махи-махи)"
+    },
+    {
+        "id": "scarus_guacamaia",
+        "scientificName": "Scarus guacamaia",
+        "commonNameEn": "Rainbow Parrotfish",
+        "commonNameRu": "Радужная рыба-попугай"
     }
 ]

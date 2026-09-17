@@ -3,6 +3,7 @@
 import React, { useEffect } from 'react';
 import { X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { cn } from '@/lib/utils';
 
 interface ModalProps {
   isOpen: boolean;
@@ -10,6 +11,7 @@ interface ModalProps {
   title?: string;
   children: React.ReactNode;
   showCloseButton?: boolean;
+  overlayClassName?: string;
 }
 
 export const Modal: React.FC<ModalProps> = ({
@@ -18,6 +20,7 @@ export const Modal: React.FC<ModalProps> = ({
   title,
   children,
   showCloseButton = true,
+  overlayClassName,
 }) => {
   useEffect(() => {
     if (isOpen) {
@@ -40,7 +43,10 @@ export const Modal: React.FC<ModalProps> = ({
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={onClose}
-            className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4"
+            className={cn(
+              'fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4',
+              overlayClassName,
+            )}
           >
             {/* Modal */}
             <motion.div
