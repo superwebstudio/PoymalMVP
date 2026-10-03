@@ -5,10 +5,6 @@ import { createCommentSchema, updateCommentSchema, validateBody, formatZodError 
 import { checkRateLimit, rateLimitResponse, COMMENT_LIMIT, addRateLimitHeaders } from '@/lib/rate-limit';
 import { createCatchNotification, removeCommentNotification } from '@/lib/create-notification';
 
-(BigInt.prototype as any).toJSON = function () {
-    return this.toString();
-};
-
 export const dynamic = 'force-dynamic';
 
 const commentUserSelect = {

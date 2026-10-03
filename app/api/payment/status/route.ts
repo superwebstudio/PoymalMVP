@@ -2,10 +2,6 @@ import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { verifyAuth } from '@/lib/auth';
 
-(BigInt.prototype as any).toJSON = function () {
-    return this.toString();
-};
-
 export const dynamic = 'force-dynamic';
 
 // GET - Check payment status

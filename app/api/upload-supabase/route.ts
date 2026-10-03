@@ -39,6 +39,7 @@ async function ensurePublicBucket(
   }
 }
 
+/** Client upload path. Objects are written with the service role, then a public URL is returned. */
 export async function POST(request: NextRequest) {
   try {
     const auth = await verifyAuth(request);
@@ -89,10 +90,7 @@ export async function POST(request: NextRequest) {
 
     if (uploadError) {
       console.error('Supabase upload error:', uploadError);
-      return NextResponse.json(
-        { error: uploadError.message || 'Failed to upload file' },
-        { status: 500 },
-      );
+      return NextResponse.json({ error: 'Failed to upload file' }, { status: 500 });
     }
 
     const {
@@ -102,12 +100,6 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ url: publicUrl }, { status: 200 });
   } catch (error) {
     console.error('Upload error:', error);
-    return NextResponse.json(
-      {
-        error:
-          error instanceof Error ? error.message : 'Failed to upload file',
-      },
-      { status: 500 },
-    );
+    return NextResponse.json({ error: 'Failed to upload file' }, { status: 500 });
   }
 }

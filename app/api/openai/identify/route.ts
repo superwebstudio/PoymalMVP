@@ -6,6 +6,12 @@ import { addRateLimitHeaders, checkRateLimit, AI_LIMIT } from '@/lib/rate-limit'
 
 export const dynamic = 'force-dynamic';
 
+/**
+ * Species identification pipeline.
+ * The browser posts the photo here; the OpenAI key never leaves the server.
+ * The model returns JSON (common name, scientific name, confidence). Usage is
+ * recorded only after a successful completion so a failed call does not spend the free quota.
+ */
 export async function POST(request: NextRequest) {
   try {
     const auth = await verifyAuth(request);
@@ -82,10 +88,6 @@ export async function POST(request: NextRequest) {
     return addRateLimitHeaders(jsonResponse, rateLimit);
   } catch (error: unknown) {
     console.error('OpenAI identification error:', error);
-    const message = error instanceof Error ? error.message : 'Unknown error';
-    return NextResponse.json(
-      { error: 'Internal server error', details: message },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

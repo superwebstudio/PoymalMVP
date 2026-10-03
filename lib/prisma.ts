@@ -48,6 +48,10 @@ declare global {
   var prisma: undefined | ReturnType<typeof prismaClientSingleton>;
 }
 
+/**
+ * Reuse one PrismaClient in development. Next.js hot reload would otherwise
+ * open a new pool on every recompilation and exhaust Postgres connections.
+ */
 const prisma = globalThis.prisma ?? prismaClientSingleton();
 
 export default prisma;

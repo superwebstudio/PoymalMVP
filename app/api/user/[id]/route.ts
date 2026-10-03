@@ -59,6 +59,8 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ i
             );
         }
 
+        // Remove the Auth identity first. The Prisma delete then cascades catches,
+        // follows, and other rows that reference this user.
         const supabase = createServerSupabaseClient();
         const { error: authDeleteError } = await supabase.auth.admin.deleteUser(auth.authId);
         if (authDeleteError) {
@@ -66,7 +68,6 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ i
             return NextResponse.json({ error: 'Unable to delete account' }, { status: 500 });
         }
 
-        // Delete user (cascades will delete catches, likes, etc.)
         await prisma.user.delete({
             where: { id },
         });

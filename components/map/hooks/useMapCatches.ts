@@ -26,6 +26,11 @@ function onlyOwnCatches(
   return catches.filter((item) => item.user?.id === userId);
 }
 
+/**
+ * Loads catches for the current viewport.
+ * Community mode waits until zoom 8 so a world view does not pull every point,
+ * and a request id drops stale responses when the user pans quickly.
+ */
 export function useMapCatches(
   mode: MapMode,
   filters: Filters,

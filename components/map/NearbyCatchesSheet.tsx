@@ -5,6 +5,7 @@ import { useI18n } from '@/lib/useI18n';
 import { useUserStore } from '@/stores/useUserStore';
 import { cn } from '@/lib/utils';
 import { CachedImage } from '@/components/CachedImage';
+import { calculateDistance } from '@/lib/location-utils';
 
 interface Catch {
     id: string;
@@ -36,23 +37,6 @@ export function NearbyCatchesSheet({ catches, userLocation, onCatchClick, isOpen
     const [maxDistance, setMaxDistance] = useState(50);
     const [timeFilter, setTimeFilter] = useState<'week' | 'month' | 'all' | '5kg+'>('all');
     const [visibleCatches, setVisibleCatches] = useState<Catch[]>(catches);
-
-    // Calculate distance between two points in km
-    const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number) => {
-        const R = 6371; // Radius of the earth in km
-        const dLat = deg2rad(lat2 - lat1);
-        const dLon = deg2rad(lon2 - lon1);
-        const a =
-            Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-            Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) *
-            Math.sin(dLon / 2) * Math.sin(dLon / 2);
-        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-        return R * c; // Distance in km
-    };
-
-    const deg2rad = (deg: number) => {
-        return deg * (Math.PI / 180);
-    };
 
     // Update visible catches when catches prop changes
     useEffect(() => {

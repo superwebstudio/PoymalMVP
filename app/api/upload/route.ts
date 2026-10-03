@@ -48,8 +48,9 @@ async function ensurePublicBucket(
 }
 
 /**
- * Legacy `/api/upload` — must use object storage on Vercel (EROFS on /var/task).
- * Prefer `/api/upload-supabase` for new callers; this route stays for catch logging.
+ * Authenticated upload into Supabase Storage.
+ * Images are checked against real file signatures before the object is written.
+ * Avatars use the avatars/ prefix; catch media uses the catch-images or catch-videos bucket.
  */
 export async function POST(request: NextRequest): Promise<NextResponse> {
   try {
@@ -125,10 +126,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 
     if (uploadError) {
       console.error('Supabase upload error:', uploadError);
-      return NextResponse.json(
-        { error: uploadError.message || 'Failed to upload file' },
-        { status: 500 },
-      );
+      return NextResponse.json({ error: 'Failed to upload file' }, { status: 500 });
     }
 
     const {
@@ -139,12 +137,6 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     return addRateLimitHeaders(response, rateLimit);
   } catch (error) {
     console.error('Upload error:', error);
-    return NextResponse.json(
-      {
-        error:
-          error instanceof Error ? error.message : 'Failed to upload file',
-      },
-      { status: 500 },
-    );
+    return NextResponse.json({ error: 'Failed to upload file' }, { status: 500 });
   }
 }

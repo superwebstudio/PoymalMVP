@@ -10,7 +10,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { userId, reason, duration } = body;
+    const { userId, reason } = body;
 
     if (!userId || !reason) {
       return NextResponse.json(
@@ -31,17 +31,10 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // For now, we'll delete the user's content visibility
-    // In a production app, you'd have a banned_users table or a isBanned field
-    
-    // Hide all user's catches (make them private)
     await prisma.catch.updateMany({
       where: { userId },
       data: { isPublic: false },
     });
-
-    // Log the ban action (you could create an AdminAction table for audit)
-    console.log(`User ${userId} banned. Reason: ${reason}. Duration: ${duration || 'permanent'}`);
 
     return NextResponse.json({
       success: true,

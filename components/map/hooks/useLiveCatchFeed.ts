@@ -5,6 +5,7 @@ import type mapboxgl from "mapbox-gl";
 import type { MapCatch } from "@/components/map/hooks/useCatchMarkers";
 import { useLiveMapStore, type LiveCatchEvent } from "@/stores/useLiveMapStore";
 import { useUserStore } from "@/stores/useUserStore";
+import { calculateDistance } from "@/lib/location-utils";
 
 const POLL_MS = 45_000;
 const PULSE_MS = 2_800;
@@ -12,21 +13,7 @@ const CLEANUP_MS = 2_500;
 const CLUSTER_KM = 1.5;
 const MIN_ZOOM = 8;
 
-function haversineKm(
-  lat1: number,
-  lng1: number,
-  lat2: number,
-  lng2: number
-): number {
-  const toRad = (deg: number) => (deg * Math.PI) / 180;
-  const dLat = toRad(lat2 - lat1);
-  const dLng = toRad(lng2 - lng1);
-  const a =
-    Math.sin(dLat / 2) ** 2 +
-    Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLng / 2) ** 2;
-  return 6371 * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-}
-
+/** Group nearby live catches so one pulse represents a tight cluster of pins. */
 function clusterCatches(catches: MapCatch[]): MapCatch[][] {
   const remaining = [...catches];
   const groups: MapCatch[][] = [];
@@ -38,7 +25,7 @@ function clusterCatches(catches: MapCatch[]): MapCatch[][] {
     for (let i = remaining.length - 1; i >= 0; i -= 1) {
       const candidate = remaining[i];
       if (
-        haversineKm(
+        calculateDistance(
           seed.latitude,
           seed.longitude,
           candidate.latitude,
@@ -81,6 +68,7 @@ interface UseLiveCatchFeedOptions {
   onNewCatches: (catches: MapCatch[]) => void;
 }
 
+/** Polls the viewport for new public catches and pulses a marker when one appears. */
 export function useLiveCatchFeed({
   map,
   knownCatches,

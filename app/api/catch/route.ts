@@ -5,10 +5,6 @@ import { verifyAuth } from '@/lib/auth';
 import { createCatchSchema, validateBody, formatZodError } from '@/lib/validations';
 import { checkRateLimit, rateLimitResponse, CREATE_CATCH_LIMIT, addRateLimitHeaders } from '@/lib/rate-limit';
 
-(BigInt.prototype as any).toJSON = function () {
-    return this.toString();
-};
-
 export const dynamic = 'force-dynamic';
 
 const REFERRAL_PREMIUM_DAYS = 7;
@@ -18,14 +14,20 @@ function bustFeedCache(): void {
     revalidatePath('/');
 }
 
-// Helper function to process referral rewards
-async function processReferralReward(userId: string): Promise<{ referredUserDays: number; referrerDays: number } | null> {
+/**
+ * Completes a pending referral on the referred angler's first photo catch.
+ * newCatchIds are excluded so the rows just inserted do not count as history.
+ */
+async function processReferralReward(
+    userId: string,
+    newCatchIds: string[],
+): Promise<{ referredUserDays: number; referrerDays: number } | null> {
     try {
-        // Check if user has any previous non-text-only catches
         const previousCatches = await prisma.catch.count({
             where: {
                 userId,
                 isTextOnly: false,
+                id: { notIn: newCatchIds },
             },
         });
 
@@ -230,7 +232,10 @@ export async function POST(request: NextRequest) {
             );
 
             // Process referral reward if this is user's first catch
-            const referralResult = await processReferralReward(userId);
+            const referralResult = await processReferralReward(
+                userId,
+                createdCatches.map((entry) => entry.id),
+            );
 
             bustFeedCache();
             const response = NextResponse.json({ 
@@ -292,7 +297,7 @@ export async function POST(request: NextRequest) {
         });
 
         // Process referral reward if this is user's first catch
-        const referralResult = await processReferralReward(userId);
+        const referralResult = await processReferralReward(userId, [singleCatch.id]);
 
         bustFeedCache();
         const response = NextResponse.json({ 
@@ -300,24 +305,9 @@ export async function POST(request: NextRequest) {
             referralReward: referralResult 
         }, { status: 201 });
         return addRateLimitHeaders(response, rateLimit);
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error('Create catch error:', error);
-        const errorMessage = error?.message || String(error) || 'Internal Server Error';
-        console.error('Error details:', {
-            message: errorMessage,
-            code: error?.code,
-            meta: error?.meta,
-            stack: error?.stack,
-        });
-        return NextResponse.json({ 
-            error: errorMessage,
-            code: error?.code,
-            details: process.env.NODE_ENV === 'development' ? {
-                message: errorMessage,
-                code: error?.code,
-                meta: error?.meta,
-            } : undefined
-        }, { status: 500 });
+        return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
     }
 }
 

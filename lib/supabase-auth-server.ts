@@ -125,6 +125,10 @@ async function processReferral(userId: string, referralCode?: string | null): Pr
   });
 }
 
+/**
+ * Links a Supabase Auth user to the app User row (authId is the join key).
+ * New accounts get a referral code; an optional FISH- code opens a pending referral.
+ */
 export async function upsertAppUser(
   authUser: SupabaseUser,
   referralCode?: string | null,
@@ -180,6 +184,7 @@ export async function getAuthUser(accessToken: string): Promise<SupabaseUser | n
   return data.user;
 }
 
+/** HttpOnly session cookies. The access token is never exposed to client JavaScript. */
 export function setSessionCookies(response: NextResponse, session: Session): void {
   const secure = process.env.NODE_ENV === 'production';
   const expiresAt = session.expires_at ?? Math.floor(Date.now() / 1000) + 60 * 60;

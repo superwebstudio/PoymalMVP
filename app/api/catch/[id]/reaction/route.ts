@@ -5,10 +5,6 @@ import { reactionSchema, validateBody, formatZodError } from '@/lib/validations'
 import { checkRateLimit, rateLimitResponse, REACTION_LIMIT, addRateLimitHeaders } from '@/lib/rate-limit';
 import { createCatchNotification, removeLikeNotification } from '@/lib/create-notification';
 
-(BigInt.prototype as any).toJSON = function () {
-    return this.toString();
-};
-
 export const dynamic = 'force-dynamic';
 
 // GET - Get reactions for a catch

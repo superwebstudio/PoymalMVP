@@ -111,6 +111,8 @@ export async function getFeed(userId?: string, type: 'all' | 'following' = 'all'
       }));
     }
 
+    // Catches from the same angler and place within five seconds are one outing
+    // (a multi-photo post), not separate feed cards.
     const groupedCatches: FeedCatch[] = [];
     const processedIds = new Set<string>();
 

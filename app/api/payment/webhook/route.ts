@@ -1,10 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 
-(BigInt.prototype as any).toJSON = function () {
-    return this.toString();
-};
-
 export const dynamic = 'force-dynamic';
 
 // POST - Handle Telegram payment webhook

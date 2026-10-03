@@ -139,19 +139,22 @@ export function useFishEntryLogic(dict: any, lang: string) {
             formData.append('image', compressed, 'image.jpg');
 
             const result = await identifyFish(formData);
-            if (result.species) {
+            const speciesName = result.species;
+            if (speciesName) {
+                const scientificName = result.scientificName ?? undefined;
                 useLogStore.getState().setFishForm((prev) => ({
                     ...prev,
-                    species: result.species,
-                    scientificName: result.scientificName || prev.scientificName,
+                    species: speciesName,
+                    scientificName: scientificName || prev.scientificName,
                 }));
                 addNotification({
                     message: `Identified: ${result.species}`,
                     type: 'success',
                 });
             }
-        } catch (err: any) {
-            showFishError(err.message || 'Identification failed');
+        } catch (err: unknown) {
+            const message = err instanceof Error ? err.message : 'Identification failed';
+            showFishError(message);
         }
     };
 

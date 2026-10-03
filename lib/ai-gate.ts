@@ -15,6 +15,11 @@ export type AiGateFailure = {
   response: NextResponse;
 };
 
+/**
+ * Free accounts get one identification per calendar month.
+ * The counter resets when lastAiReset is at least one month old; PRO skips the cap.
+ * A short rate limit still applies to every tier so a single session cannot stampede the model.
+ */
 export async function assertAiIdentifyAllowed(
   userId: string
 ): Promise<AiGateSuccess | AiGateFailure> {

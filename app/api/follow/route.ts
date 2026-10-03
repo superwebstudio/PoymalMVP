@@ -4,10 +4,6 @@ import { verifyAuth } from '@/lib/auth';
 import { checkRateLimit, rateLimitResponse, STANDARD_LIMIT } from '@/lib/rate-limit';
 import { z } from 'zod';
 
-(BigInt.prototype as any).toJSON = function () {
-  return this.toString();
-};
-
 const followSchema = z.object({
   userId: z.string().uuid(),
   action: z.enum(['follow', 'unfollow']),

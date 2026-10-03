@@ -34,7 +34,8 @@ export function useLocationSearch(searchQuery: string) {
                     place_name: lang === 'ru' ? species.commonNameRu : species.commonNameEn,
                 }));
 
-            // Search locations via Mapbox
+            // Forward geocoding, or reverse geocoding when the query is "lat, lng".
+            // Mapbox expects longitude first. The token is the public client token.
             const mapboxToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN || '';
             const coordMatch = query.match(/^(-?\d+\.?\d*)[,\s]+(-?\d+\.?\d*)$/);
             let url: string;

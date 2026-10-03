@@ -13,6 +13,11 @@ interface UseMapInitializationOptions {
     trackResize?: boolean;
 }
 
+/**
+ * Owns a single Mapbox map instance.
+ * The public token comes from NEXT_PUBLIC_MAPBOX_TOKEN (restrict it by URL in the Mapbox dashboard).
+ * Theme changes call setStyle so markers and the camera survive a style swap.
+ */
 export function useMapInitialization({
     mapTheme,
     initialCenter = [0, 0],

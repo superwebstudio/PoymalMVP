@@ -1,37 +1,29 @@
 import { useMutation } from '@tanstack/react-query';
 
-interface CreateCatchParams {
-  formData: FormData;
-  userId: string;
+interface IdentifyResult {
+  species: string | null;
+  scientificName: string | null;
+  confidence: number | null;
+  description: string | null;
 }
 
-async function identifyFish(formData: FormData) {
-  const res = await fetch('/api/openai/identify', {
+async function identifyFish(formData: FormData): Promise<IdentifyResult> {
+  const response = await fetch('/api/openai/identify', {
     method: 'POST',
     body: formData,
     credentials: 'include',
   });
-  if (!res.ok) {
-    const error = await res.json();
-    const err = new Error(error.error || 'Failed to identify fish') as Error & {
+
+  if (!response.ok) {
+    const errorBody = (await response.json()) as { error?: string; code?: string };
+    const error = new Error(errorBody.error || 'Failed to identify fish') as Error & {
       code?: string;
     };
-    err.code = error.code;
-    throw err;
+    error.code = errorBody.code;
+    throw error;
   }
-  return res.json();
-}
 
-async function createCatch(data: any, userId: string) {
-  const res = await fetch('/api/catch', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(data),
-  });
-  if (!res.ok) throw new Error('Failed to post catch');
-  return res.json();
+  return response.json() as Promise<IdentifyResult>;
 }
 
 export function useCatchMutations() {
@@ -39,28 +31,8 @@ export function useCatchMutations() {
     mutationFn: identifyFish,
   });
 
-  const createCatchMutation = useMutation({
-    mutationFn: ({ data, userId }: { data: any; userId: string }) => 
-      createCatch(data, userId),
-  });
-
   return {
     identifyFish: identifyMutation.mutateAsync,
-    createCatch: createCatchMutation.mutateAsync,
     isIdentifying: identifyMutation.isPending,
-    isCreating: createCatchMutation.isPending,
   };
 }
-
-
-
-
-
-
-
-
-
-
-
-
-

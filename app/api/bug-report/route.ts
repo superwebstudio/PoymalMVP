@@ -125,15 +125,6 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       imageUrls.push(publicUrl);
     }
 
-    console.log('Bug Report:', {
-      userId,
-      description: validation.data.description,
-      deviceInfo: validation.data.deviceInfo || 'Unknown',
-      appVersion: validation.data.appVersion || '1.0.0',
-      imageUrls,
-      timestamp: new Date().toISOString(),
-    });
-
     const response = NextResponse.json(
       { success: true, message: 'Bug report submitted successfully' },
       { status: 200 },

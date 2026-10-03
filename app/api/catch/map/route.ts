@@ -136,6 +136,8 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       take: resultLimit,
     });
 
+    // PRO and the catch owner receive exact coordinates. Everyone else gets
+    // coordinates snapped to a coarse grid so community spots stay approximate.
     const locationMode =
       isMyCatchesMode || exactCommunity ? ('exact' as const) : ('heatmap' as const);
 

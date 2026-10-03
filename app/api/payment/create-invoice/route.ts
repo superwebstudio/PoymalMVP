@@ -2,10 +2,6 @@ import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { verifyAuth } from '@/lib/auth';
 
-(BigInt.prototype as any).toJSON = function () {
-    return this.toString();
-};
-
 export const dynamic = 'force-dynamic';
 
 // POST - Create Telegram Stars invoice
@@ -92,10 +88,13 @@ export async function POST(request: NextRequest) {
             });
         } catch (error) {
             console.error('Invoice creation error:', error);
-            // Fallback: return a link that can be used to send invoice via bot
+            const botUsername = process.env.TELEGRAM_BOT_USERNAME;
+            if (!botUsername) {
+                return NextResponse.json({ error: 'Failed to create invoice' }, { status: 502 });
+            }
             return NextResponse.json({
                 invoiceId: transaction.id,
-                invoiceUrl: `https://t.me/${process.env.TELEGRAM_BOT_USERNAME || 'your_bot'}?start=pay_${transaction.id}`,
+                invoiceUrl: `https://t.me/${botUsername}?start=pay_${transaction.id}`,
             });
         }
     } catch (error) {
